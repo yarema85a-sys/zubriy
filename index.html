@@ -1,0 +1,2117 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <title>Зубрій — вчися у своєму ритмі</title>
+  <style>
+    :root {
+      --ink: #17233b;
+      --muted: #707b91;
+      --line: #e8ebf2;
+      --paper: #ffffff;
+      --canvas: #f6f7fb;
+      --blue: #465ce5;
+      --blue-dark: #3549c5;
+      --lavender: #eeedff;
+      --green: #1d9b79;
+      --shadow: 0 16px 44px rgba(28, 43, 78, .08);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(70, 92, 229, .25); outline-offset: 2px;
+    }
+    .topbar {
+      height: 76px; padding: 0 max(28px, calc((100vw - 1160px) / 2));
+      display: flex; align-items: center; gap: 30px; background: rgba(255,255,255,.92);
+      border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5;
+      backdrop-filter: blur(16px);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; flex: 0 0 auto; }
+    .brand-mark {
+      width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px;
+      color: white; background: linear-gradient(145deg, #7382ff, #465ce5);
+      box-shadow: 0 6px 14px rgba(70,92,229,.24);
+    }
+    .brand-name { font-size: 21px; font-weight: 800; letter-spacing: -.8px; }
+    .nav { display: flex; align-items: center; gap: 5px; }
+    .nav button, .nav-link {
+      background: transparent; border: 0; padding: 10px 13px; border-radius: 11px;
+      color: #657087; font-weight: 650; text-decoration: none;
+    }
+    .nav button:hover, .nav-link:hover { background: #f2f3fa; color: var(--ink); }
+    .top-search { margin-left: auto; position: relative; width: min(270px, 25vw); }
+    .top-search svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #8b94a7; }
+    .top-search input {
+      width: 100%; border: 1px solid var(--line); background: #f8f9fc; border-radius: 12px;
+      padding: 10px 13px 10px 39px; color: var(--ink);
+    }
+    .avatar {
+      border: 0; border-radius: 50%; width: 38px; height: 38px; flex: 0 0 auto;
+      background: #e8eaff; color: var(--blue); font-weight: 800;
+    }
+    .avatar.signed-in { width: auto; min-width: 38px; padding: 0 12px; border-radius: 999px; }
+    .page { width: min(1160px, calc(100% - 56px)); margin: 0 auto; }
+    .hero {
+      margin: 38px 0 36px; min-height: 296px; padding: 42px 48px; position: relative; overflow: hidden;
+      background: linear-gradient(115deg, #e9edff 0%, #f2efff 52%, #f7f2ff 100%);
+      border: 1px solid #e7e7fb; border-radius: 28px; display: flex; align-items: center;
+    }
+    .hero:before, .hero:after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; }
+    .hero:before { width: 350px; height: 350px; right: 115px; top: -210px; border: 1px solid rgba(89,99,214,.12); box-shadow: 0 0 0 30px rgba(255,255,255,.12), 0 0 0 62px rgba(255,255,255,.1); }
+    .hero:after { width: 250px; height: 250px; right: -90px; bottom: -175px; background: rgba(255,255,255,.4); }
+    .hero-copy { max-width: 600px; position: relative; z-index: 1; }
+    .eyebrow { color: var(--blue); font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 1.15px; }
+    h1 { font-size: clamp(34px, 4.1vw, 52px); letter-spacing: -2.5px; line-height: 1.08; margin: 14px 0 14px; }
+    .hero p { max-width: 500px; margin: 0 0 24px; color: #64708a; font-size: 16px; }
+    .primary, .secondary, .quiet, .icon-button {
+      border: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      font-weight: 750; transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
+    }
+    .primary { color: white; background: var(--blue); padding: 12px 17px; box-shadow: 0 7px 15px rgba(70,92,229,.2); }
+    .primary:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    .secondary { color: var(--ink); background: white; border: 1px solid var(--line); padding: 11px 15px; }
+    .secondary:hover { background: #f8f9ff; border-color: #cfd4f6; }
+    .quiet { padding: 9px 12px; background: transparent; color: #69748a; }
+    .quiet:hover { background: #f1f3fa; color: var(--ink); }
+    .icon-button { width: 40px; height: 40px; color: #69748a; background: #f6f7fb; padding: 0; }
+    .icon-button:hover { color: var(--blue); background: var(--lavender); }
+    .streak {
+      width: 214px; margin-left: auto; padding: 17px 19px; position: relative; z-index: 1;
+      border: 1px solid rgba(255,255,255,.88); border-radius: 19px; background: rgba(255,255,255,.77);
+      box-shadow: 0 10px 32px rgba(81,82,153,.08); backdrop-filter: blur(8px);
+    }
+    .streak-top { display: flex; justify-content: space-between; align-items: center; color: #778198; font-size: 12px; font-weight: 700; }
+    .streak-number { font-size: 32px; font-weight: 850; letter-spacing: -1.5px; margin: 3px 0 0; }
+    .streak-number span { font-size: 15px; font-weight: 650; letter-spacing: 0; color: #758099; }
+    .week { display: flex; gap: 7px; justify-content: space-between; margin-top: 15px; }
+    .day { width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center; background: #f0f1f7; color: #a2a9b8; font-size: 10px; font-weight: 700; }
+    .day.done { color: white; background: #6577ed; }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 17px; }
+    .section-head h2 { margin: 0; font-size: 23px; letter-spacing: -.7px; }
+    .section-head p { margin: 4px 0 0; color: var(--muted); }
+    .tabs { display: flex; gap: 7px; margin: 20px 0 21px; overflow-x: auto; }
+    .tab {
+      border: 1px solid transparent; background: transparent; border-radius: 999px; padding: 8px 14px;
+      color: #6d7890; font-weight: 700; white-space: nowrap;
+    }
+    .tab:hover { background: white; }
+    .tab.active { color: var(--blue); background: #eeefff; border-color: #dedfff; }
+    .deck-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
+    .deck {
+      background: white; border: 1px solid var(--line); border-radius: 19px; padding: 13px;
+      transition: transform .18s ease, box-shadow .18s ease; min-width: 0;
+    }
+    .deck:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .deck-cover {
+      height: 138px; border-radius: 13px; padding: 17px; position: relative; overflow: hidden;
+      display: flex; align-items: end; color: white;
+    }
+    .deck-cover:after { content: ""; position: absolute; width: 180px; height: 180px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); right: -32px; top: -96px; box-shadow: 0 0 0 20px rgba(255,255,255,.08), 0 0 0 42px rgba(255,255,255,.06); }
+    .cover-language { background: linear-gradient(135deg, #465ce5, #8692ff); }
+    .cover-science { background: linear-gradient(135deg, #078c7d, #5fc5aa); }
+    .cover-history { background: linear-gradient(135deg, #d8734d, #f0aa6b); }
+    .cover-custom { background: linear-gradient(135deg, #7961c9, #a698ef); }
+    .cover-symbol { font-size: 36px; position: relative; z-index: 1; line-height: 1; }
+    .cover-caption { position: absolute; right: 16px; bottom: 13px; z-index: 1; font-size: 11px; letter-spacing: 1px; font-weight: 800; opacity: .88; }
+    .deck-body { padding: 13px 4px 4px; }
+    .deck-tag { color: #747f95; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; }
+    .deck-title-row { display: flex; align-items: start; gap: 10px; justify-content: space-between; }
+    .deck h3 { margin: 5px 0 6px; font-size: 17px; letter-spacing: -.3px; line-height: 1.3; }
+    .favorite { border: 0; background: transparent; color: #b8bfce; padding: 3px; font-size: 19px; line-height: 1; }
+    .favorite:hover, .favorite.saved { color: #f2a344; }
+    .deck-meta { display: flex; gap: 13px; color: #8992a4; font-size: 12px; align-items: center; }
+    .deck-meta span { display: flex; gap: 5px; align-items: center; }
+    .deck-footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f0f1f5; margin-top: 13px; padding-top: 11px; }
+    .creator { color: #6e7890; font-size: 12px; }
+    .open-link { border: 0; background: transparent; padding: 5px 2px; color: var(--blue); font-weight: 800; font-size: 12px; }
+    .empty { grid-column: 1 / -1; background: white; border: 1px dashed #d8ddeb; border-radius: 18px; text-align: center; padding: 46px 20px; color: var(--muted); }
+    .empty strong { color: var(--ink); display: block; font-size: 18px; margin-bottom: 5px; }
+    .bottom-note { margin: 54px 0 30px; padding: 17px 0 25px; border-top: 1px solid var(--line); color: #8992a4; font-size: 12px; display: flex; justify-content: space-between; gap: 15px; }
+    .bottom-note strong { color: #606c83; }
+    .study-view { padding: 32px 0 64px; display: none; }
+    .back-button { margin-bottom: 17px; }
+    .study-heading { display: flex; justify-content: space-between; gap: 20px; align-items: start; }
+    .study-heading h1 { font-size: clamp(28px, 3.4vw, 40px); margin: 5px 0 6px; letter-spacing: -1.7px; }
+    .study-heading p { margin: 0; color: var(--muted); }
+    .study-actions { display: flex; gap: 9px; flex-wrap: wrap; }
+    .study-tabs { display: flex; overflow-x: auto; border-bottom: 1px solid var(--line); gap: 23px; margin: 26px 0 22px; }
+    .study-tab { padding: 0 1px 12px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #7b8598; font-weight: 750; }
+    .study-tab.active { border-color: var(--blue); color: var(--blue); }
+    .study-layout { display: grid; grid-template-columns: minmax(0,1fr) 285px; gap: 22px; align-items: start; }
+    .study-main, .side-card { background: white; border: 1px solid var(--line); border-radius: 20px; }
+    .study-main { padding: 22px; min-height: 410px; }
+    .side-card { padding: 19px; }
+    .side-card h3 { font-size: 15px; margin: 0 0 12px; }
+    .side-card p { font-size: 13px; color: var(--muted); margin: 0; }
+    .side-stat { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid #f0f1f5; font-size: 13px; }
+    .side-stat span { color: var(--muted); }
+    .mode-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .mode-top span { color: #707b91; font-size: 13px; font-weight: 700; }
+    .counter { color: #6f7a91; font-size: 13px; font-weight: 750; }
+    .card-mode-tools { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; justify-content: end; }
+    .progress { height: 6px; background: #edf0f6; border-radius: 99px; overflow: hidden; margin-bottom: 23px; }
+    .progress i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg,#586bea,#8b96ff); transition: width .25s ease; }
+    .flashcard {
+      min-height: 253px; border: 1px solid #e7e9f4; border-radius: 17px; background: linear-gradient(145deg,#fff,#fafaff);
+      display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 34px;
+      cursor: pointer; text-align: center; box-shadow: 0 8px 25px rgba(33,43,77,.04); transition: transform .16s ease, background .16s ease;
+    }
+    .flashcard:hover { transform: translateY(-2px); }
+    .flashcard.flipped { background: #f2f1ff; border-color: #dedcff; }
+    .flashcard .card-label { color: #8b94a7; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    .flashcard .card-text { margin: 14px 0; font-size: clamp(25px, 3vw, 37px); line-height: 1.22; font-weight: 800; letter-spacing: -.8px; }
+    .flashcard .flip-hint { color: #9098a9; font-size: 12px; margin-top: 11px; }
+    .card-controls { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 19px; }
+    .card-controls .icon-button { border: 1px solid var(--line); background: white; }
+    .card-controls .primary { min-width: 135px; }
+    .terms-title { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 15px; }
+    .terms-title h2 { margin: 0; font-size: 19px; }
+    .term-row { display: grid; grid-template-columns: 1fr 1.25fr 34px; gap: 15px; padding: 14px 10px; border-top: 1px solid #edf0f5; align-items: center; }
+    .term-row strong { font-size: 14px; }
+    .term-row span { color: #68748b; }
+    .quiz-question { font-size: 24px; line-height: 1.25; letter-spacing: -.5px; font-weight: 800; margin: 5px 0 19px; }
+    .quiz-options { display: grid; gap: 10px; }
+    .quiz-option {
+      width: 100%; text-align: left; padding: 13px 15px; border-radius: 12px; border: 1px solid #e6e9f1;
+      background: white; color: var(--ink); font-weight: 650; display: flex; justify-content: space-between; gap: 10px;
+    }
+    .quiz-option:hover:not(:disabled) { border-color: #b8c0f5; background: #fafaff; }
+    .quiz-option.correct { background: #ecf8f3; border-color: #8dd2b7; color: #137959; }
+    .quiz-option.wrong { background: #fff1ef; border-color: #f0aba3; color: #b84c43; }
+    .quiz-option:disabled { cursor: default; }
+    .quiz-feedback { min-height: 25px; margin-top: 13px; color: #747f95; font-size: 13px; font-weight: 700; }
+    .quiz-next { display: flex; justify-content: end; margin-top: 10px; }
+    .result { padding: 45px 10px; text-align: center; }
+    .result-icon { width: 67px; height: 67px; display: grid; place-items: center; border-radius: 22px; margin: 0 auto 16px; background: #eeefff; color: var(--blue); font-size: 30px; }
+    .result h2 { margin: 0 0 7px; font-size: 27px; }
+    .result p { color: var(--muted); margin: 0 0 21px; }
+    .match-instructions { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 16px; color: #737e93; font-size: 13px; }
+    .match-board { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 11px; }
+    .match-tile { min-height: 92px; padding: 13px; border: 1px solid #e4e8f1; border-radius: 13px; background: white; color: var(--ink); font-weight: 700; text-align: center; display: grid; place-items: center; transition: .16s ease; }
+    .match-tile:hover { border-color: #aeb7ef; background: #fafaff; }
+    .match-tile.selected { border-color: #6878e8; background: #eef0ff; color: #3549c5; box-shadow: 0 0 0 2px rgba(70,92,229,.1); }
+    .match-tile.matched { border-color: #a6dbc7; background: #eff9f4; color: #198061; opacity: .65; cursor: default; }
+    .match-tile.wrong { border-color: #efa9a2; background: #fff1ef; color: #b84c43; }
+    .blocks-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .blocks-head strong { font-size: 19px; }
+    .blocks-layout { display: grid; grid-template-columns: minmax(0,1fr) 190px; gap: 16px; align-items: start; }
+    .blocks-board { width: min(100%, 464px); aspect-ratio: 1; margin: 0 auto; padding: 7px; display: grid; grid-template-columns: repeat(8,minmax(0,1fr)); gap: 4px; border-radius: 15px; background: #e9ecf4; }
+    .blocks-cell { min-width: 0; border: 0; border-radius: 5px; background: #fff; padding: 0; }
+    .blocks-cell:hover { background: #e8eaff; }
+    .blocks-cell.filled { background: linear-gradient(145deg,#6878e8,#465ce5); box-shadow: inset 0 1px 2px rgba(255,255,255,.3); }
+    .blocks-cell.preview { background: #b8c0f7; }
+    .blocks-cell.invalid { background: #f4a8a0; }
+    .piece-shelf { display: grid; gap: 9px; }
+    .piece-button { min-height: 59px; display: flex; gap: 9px; align-items: center; padding: 9px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--ink); font-size: 12px; font-weight: 700; }
+    .piece-button.selected { border-color: #6878e8; background: #f0f1ff; box-shadow: 0 0 0 2px rgba(70,92,229,.1); }
+    .piece-preview { display: grid; grid-template-columns: repeat(3,8px); grid-template-rows: repeat(3,8px); gap: 2px; flex: 0 0 auto; }
+    .piece-preview i { width: 8px; height: 8px; border-radius: 2px; background: #6575e8; }
+    .piece-preview i.empty { background: transparent; }
+    .block-question { border: 1px solid #e7e9f4; border-radius: 14px; padding: 15px; background: #fafaff; margin: 14px 0; }
+    .block-question h3 { margin: 0 0 8px; font-size: 17px; }
+    .block-question .quiz-options { margin-top: 12px; }
+    .options-backdrop { position: fixed; inset: 0; z-index: 13; display: none; place-items: center; background: rgba(25,33,54,.4); padding: 18px; }
+    .options-backdrop.open { display: grid; }
+    .options-panel { width: min(600px,100%); max-height: 92vh; overflow: auto; padding: 23px; background: white; border: 1px solid var(--line); border-radius: 21px; box-shadow: 0 24px 80px rgba(15,20,40,.24); }
+    .options-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 16px; }
+    .options-head h2 { margin: 4px 0 0; font-size: 24px; letter-spacing: -.7px; }
+    .option-section { padding: 14px 0; border-top: 1px solid #edf0f5; }
+    .option-section h3 { margin: 0 0 10px; font-size: 14px; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 11px 0; }
+    .setting-row strong, .setting-row small { display: block; }
+    .setting-row strong { font-size: 13px; }
+    .setting-row small { color: #818ca0; font-size: 11px; margin-top: 2px; }
+    .setting-row select { min-width: 170px; max-width: 52%; border: 1px solid #dfe3ed; border-radius: 10px; padding: 9px 10px; background: white; color: var(--ink); }
+    .setting-checks { display: grid; gap: 9px; }
+    .setting-check { display: flex; align-items: center; gap: 9px; color: #59667e; font-size: 13px; }
+    .setting-check input { accent-color: var(--blue); width: 16px; height: 16px; }
+    .options-actions { display: flex; justify-content: end; gap: 9px; margin-top: 15px; }
+    .create-view { display: none; padding: 32px 0 64px; }
+    .create-wrap { max-width: 930px; margin: 0 auto; }
+    .create-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .create-top .quiet { padding-left: 0; }
+    .create-top-actions { display: flex; gap: 9px; }
+    .create-heading { margin-bottom: 22px; }
+    .create-heading h1 { font-size: 31px; letter-spacing: -1.4px; margin: 0 0 5px; }
+    .create-heading p { margin: 0; color: var(--muted); }
+    .create-panel { background: white; border: 1px solid var(--line); border-radius: 20px; padding: 22px; margin-bottom: 16px; }
+    .create-fields { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(180px,.6fr); gap: 15px; }
+    .create-field { display: block; margin-bottom: 15px; }
+    .create-field span, .language-field span { display: block; font-size: 12px; color: #67738a; font-weight: 800; margin-bottom: 6px; }
+    .create-field input, .create-field select, .language-field select, .term-input {
+      width: 100%; border: 1px solid #dfe3ed; border-radius: 11px; padding: 11px 12px; color: var(--ink); background: white;
+    }
+    .create-field input::placeholder, .term-input::placeholder { color: #a2aabb; }
+    .language-pair { display: grid; grid-template-columns: 1fr 38px 1fr; align-items: end; gap: 12px; padding-top: 2px; }
+    .language-field { min-width: 0; }
+    .language-swap { color: #8b94a7; font-size: 18px; text-align: center; padding-bottom: 10px; }
+    .term-editor { padding: 0; overflow: hidden; }
+    .term-editor-head { display: grid; grid-template-columns: 48px minmax(0,1fr) 44px minmax(0,1fr) 38px; gap: 10px; align-items: center; background: #fafbfe; border-bottom: 1px solid var(--line); padding: 12px 16px; color: #768197; font-size: 11px; font-weight: 850; text-transform: uppercase; letter-spacing: .6px; }
+    .term-editor-head span:nth-child(3) { text-align: center; }
+    .term-card { display: grid; grid-template-columns: 48px minmax(0,1fr) 44px minmax(0,1fr) 38px; gap: 10px; align-items: center; padding: 13px 16px; border-bottom: 1px solid #edf0f5; }
+    .term-card:last-child { border-bottom: 0; }
+    .row-number { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: #f1f2f8; color: #828ba0; font-size: 12px; font-weight: 800; }
+    .word-side { min-width: 0; }
+    .word-input-row { position: relative; }
+    .term-input { min-height: 49px; padding-right: 43px; font-size: 14px; }
+    .term-input:focus { border-color: #aab3f1; }
+    .speaker-button, .translate-trigger, .remove-card {
+      border: 0; display: grid; place-items: center; background: transparent; color: #8590a5; border-radius: 9px;
+    }
+    .speaker-button { position: absolute; right: 6px; top: 5px; width: 36px; height: 36px; }
+    .speaker-button:hover, .translate-trigger:hover { color: var(--blue); background: #f0f1ff; }
+    .translate-trigger { width: 36px; height: 36px; margin: 0 auto; font-size: 19px; }
+    .remove-card { width: 34px; height: 34px; font-size: 18px; }
+    .remove-card:hover { color: #cc554f; background: #fff1ef; }
+    .translate-status { min-height: 17px; padding: 4px 2px 0; color: #9099aa; font-size: 10px; line-height: 1.25; }
+    .translate-status[data-state="ready"] { color: #178263; }
+    .translate-status[data-state="error"] { color: #bf5b50; }
+    .term-editor-tools { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #edf0f5; color: #7a859a; font-size: 12px; font-weight: 750; }
+    .import-panel { display: none; background: #fafbfe; padding: 16px; border-bottom: 1px solid var(--line); }
+    .import-panel.open { display: block; }
+    .import-panel label strong, .import-panel label span { display: block; }
+    .import-panel label strong { color: var(--ink); font-size: 13px; }
+    .import-panel label span { color: #7e899c; font-size: 11px; margin: 3px 0 9px; }
+    .import-panel textarea { width: 100%; min-height: 110px; resize: vertical; border: 1px solid #dfe3ed; border-radius: 11px; padding: 11px 12px; color: var(--ink); background: white; line-height: 1.5; }
+    .import-actions { display: flex; justify-content: end; gap: 9px; margin-top: 10px; }
+    .add-card-row { padding: 13px 16px; border-top: 1px solid #edf0f5; }
+    .privacy-note { margin: 14px 3px 0; color: #848ea1; font-size: 12px; line-height: 1.55; }
+    .privacy-note a { color: var(--blue); text-decoration: none; }
+    .privacy-note a:hover { text-decoration: underline; }
+    .create-bottom { display: flex; justify-content: space-between; gap: 15px; align-items: center; color: #8892a5; font-size: 12px; padding: 3px 3px; }
+    .toast {
+      position: fixed; left: 50%; bottom: 25px; transform: translate(-50%,15px); opacity: 0; pointer-events: none;
+      background: #1d2941; color: white; border-radius: 12px; padding: 11px 16px; z-index: 20; font-size: 13px; font-weight: 700;
+      box-shadow: 0 8px 24px rgba(20,28,50,.18); transition: .2s ease;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%,0); }
+    .account-backdrop { position: fixed; inset: 0; z-index: 12; display: none; place-items: center; background: rgba(25,33,54,.38); padding: 18px; }
+    .account-backdrop.open { display: grid; }
+    .account-modal { width: min(440px,100%); background: white; border: 1px solid var(--line); border-radius: 22px; padding: 24px; box-shadow: 0 24px 80px rgba(15,20,40,.24); }
+    .account-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
+    .account-head h2 { margin: 4px 0 0; font-size: 24px; letter-spacing: -.7px; }
+    .account-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 4px; margin-bottom: 15px; border-radius: 12px; background: #f2f4f9; }
+    .account-tab { border: 0; border-radius: 9px; padding: 9px; background: transparent; color: #6d7890; font-weight: 750; }
+    .account-tab.active { background: white; color: var(--blue); box-shadow: 0 1px 4px rgba(20,30,60,.08); }
+    .account-field { display: block; margin: 13px 0; }
+    .account-field span { display: block; margin-bottom: 6px; font-size: 12px; color: #67738a; font-weight: 800; }
+    .account-field input { width: 100%; border: 1px solid #dfe3ed; border-radius: 11px; padding: 11px 12px; color: var(--ink); background: white; }
+    .account-note { margin: 12px 0 0; color: #848ea1; font-size: 12px; line-height: 1.55; }
+    .account-note strong { color: #616e84; }
+    .account-submit { width: 100%; margin-top: 5px; }
+    .profile-card { display: flex; gap: 13px; align-items: center; padding: 14px; border-radius: 14px; background: #f7f8fc; }
+    .profile-icon { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 15px; background: #e8eaff; color: var(--blue); font-size: 18px; font-weight: 850; }
+    .profile-card strong, .profile-card span { display: block; }
+    .profile-card span { color: var(--muted); font-size: 12px; }
+    .profile-actions { display: flex; gap: 9px; margin-top: 15px; }
+    .profile-actions button { flex: 1; }
+    @media (max-width: 850px) {
+      .topbar { gap: 12px; padding: 0 20px; }
+      .nav { display: none; }
+      .top-search { width: min(270px,45vw); }
+      .hero { padding: 34px; }
+      .streak { width: 185px; }
+      .deck-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .study-layout { grid-template-columns: 1fr; }
+      .create-wrap { max-width: 100%; }
+    }
+    @media (max-width: 590px) {
+      .topbar { height: 64px; padding: 0 15px; gap: 10px; }
+      .brand-name { font-size: 19px; }
+      .top-search { width: auto; flex: 1; }
+      .avatar { width: 34px; height: 34px; }
+      .page { width: calc(100% - 30px); }
+      .hero { margin: 20px 0 29px; display: block; min-height: 0; padding: 27px 24px; }
+      .hero:before { right: -110px; }
+      .hero p { font-size: 14px; }
+      .streak { display: none; }
+      .section-head { align-items: start; }
+      .section-head h2 { font-size: 20px; }
+      .section-head p { font-size: 13px; }
+      .section-head .primary { padding: 10px 12px; font-size: 12px; }
+      .deck-grid { grid-template-columns: 1fr; gap: 13px; }
+      .deck { display: grid; grid-template-columns: 112px 1fr; gap: 0 10px; padding: 10px; }
+      .deck-cover { height: 100%; min-height: 124px; grid-row: span 2; padding: 12px; }
+      .cover-symbol { font-size: 29px; }
+      .cover-caption { font-size: 8px; right: 10px; bottom: 9px; }
+      .deck-body { padding: 4px 1px 0; }
+      .deck h3 { font-size: 15px; }
+      .deck-footer { grid-column: 2; margin-top: 8px; padding-top: 8px; }
+      .study-view { padding-top: 20px; }
+      .create-view { padding-top: 20px; }
+      .create-top { align-items: flex-start; }
+      .create-top-actions { flex: 0 0 auto; }
+      .create-top-actions .secondary { display: none; }
+      .create-heading h1 { font-size: 27px; }
+      .create-panel { padding: 15px; }
+      .create-fields { grid-template-columns: 1fr; gap: 0; }
+      .language-pair { gap: 8px; grid-template-columns: minmax(0,1fr) 26px minmax(0,1fr); }
+      .term-editor-head { display: none; }
+      .term-editor-tools { padding: 8px 11px; font-size: 11px; }
+      .import-panel { padding: 12px; }
+      .term-card { grid-template-columns: 34px minmax(0,1fr) 34px; gap: 7px; padding: 12px 10px; }
+      .term-card .row-number { grid-column: 1; grid-row: 1; }
+      .term-card .source-side { grid-column: 2; grid-row: 1; }
+      .term-card .translate-trigger { grid-column: 3; grid-row: 1; }
+      .term-card .target-side { grid-column: 2; grid-row: 2; }
+      .term-card .remove-card { grid-column: 1; grid-row: 2; }
+      .term-card .term-input { min-height: 45px; font-size: 13px; }
+      .term-card .translate-status { min-height: 15px; }
+      .create-bottom { align-items: flex-start; flex-direction: column; }
+      .study-heading { display: block; }
+      .study-actions { margin-top: 15px; }
+      .study-main { padding: 15px; min-height: 380px; }
+      .card-mode-tools { gap: 0; }
+      .card-mode-tools .quiet { padding: 7px; font-size: 11px; }
+      .match-board { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+      .match-tile { min-height: 82px; padding: 9px; font-size: 13px; }
+      .match-instructions { display: block; }
+      .blocks-layout { grid-template-columns: 1fr; }
+      .piece-shelf { grid-template-columns: repeat(3,minmax(0,1fr)); }
+      .piece-button { min-height: 53px; padding: 7px; }
+      .setting-row { align-items: flex-start; flex-direction: column; gap: 7px; }
+      .setting-row select { max-width: none; width: 100%; }
+      .flashcard { min-height: 240px; padding: 22px; }
+      .term-row { grid-template-columns: minmax(0,1fr) 32px; gap: 3px 8px; }
+      .term-row strong { grid-column: 1; }
+      .term-row span { grid-column: 1; }
+      .term-row .favorite { grid-column: 2; grid-row: 1 / span 2; }
+      .bottom-note { display: block; line-height: 1.8; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *:before, *:after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" data-action="home" aria-label="Зубрій — на головну">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v15H7.5A2.5 2.5 0 0 0 5 20.5v-15Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M5 6v14.5A2.5 2.5 0 0 1 7.5 18H19M9 7h6M9 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </span>
+      <span class="brand-name">зубрій</span>
+    </a>
+    <nav class="nav" aria-label="Головна навігація">
+      <button data-action="home">Головна</button>
+      <button data-action="my-sets">Мої набори</button>
+      <button data-action="create">Створити</button>
+    </nav>
+    <label class="top-search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input id="search" type="search" placeholder="Знайти набір..." aria-label="Знайти навчальний набір">
+    </label>
+    <button id="account-button" class="avatar" data-action="account" aria-label="Відкрити акаунт">Я</button>
+  </header>
+
+  <main class="page">
+    <div id="home-view">
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">Твій простір для навчання</div>
+          <h1>Менше зубріння.<br>Більше розуміння.</h1>
+          <p>Перетворюй складні теми на короткі заняття, які легко вписати у свій день.</p>
+          <button class="primary" data-action="create">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Створити набір
+          </button>
+        </div>
+        <div class="streak" aria-label="Навчальна серія">
+          <div class="streak-top"><span>Твій ритм</span><span>✦</span></div>
+          <div class="streak-number">7 <span>днів поспіль</span></div>
+          <div class="week" aria-hidden="true">
+            <span class="day done">П</span><span class="day done">В</span><span class="day done">С</span><span class="day done">Ч</span><span class="day done">П</span><span class="day done">С</span><span class="day done">Н</span>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="sets-heading">
+        <div class="section-head">
+          <div><h2 id="sets-heading">Добірки для тебе</h2><p>Обери тему й почни з кількох карток</p></div>
+          <button class="primary" data-action="create">+ Новий набір</button>
+        </div>
+        <div class="tabs" role="tablist" aria-label="Фільтр за предметом">
+          <button class="tab active" data-category="Усі">Усі добірки</button>
+          <button class="tab" data-category="Мови">Мови</button>
+          <button class="tab" data-category="Наука">Наука</button>
+          <button class="tab" data-category="Історія">Історія</button>
+          <button class="tab" data-category="Мої">Мої набори</button>
+        </div>
+        <div id="deck-grid" class="deck-grid"></div>
+      </section>
+      <footer class="bottom-note"><span><strong>Зубрій</strong> · Маленькі кроки — великі знання.</span><span>Твої набори зберігаються в цьому браузері.</span></footer>
+    </div>
+
+    <section id="create-view" class="create-view">
+      <div class="create-wrap">
+        <div class="create-top">
+          <button class="quiet" type="button" data-action="create-cancel">← Назад</button>
+          <div class="create-top-actions">
+            <button class="secondary" type="button" data-action="create-cancel">Скасувати</button>
+            <button id="create-save-button" class="primary" type="submit" form="create-form">Створити набір</button>
+          </div>
+        </div>
+        <div class="create-heading">
+          <div class="eyebrow">Твоя нова добірка</div>
+          <h1 id="create-heading-title">Створити набір</h1>
+          <p>Додай терміни й відразу переходь до навчання.</p>
+        </div>
+        <form id="create-form">
+          <div class="create-panel">
+            <div class="create-fields">
+              <label class="create-field"><span>Назва набору</span><input name="title" required maxlength="70" placeholder="Наприклад, Англійська: подорожі"></label>
+              <label class="create-field"><span>Предмет</span><select name="category"><option>Мови</option><option>Наука</option><option>Історія</option><option>Інше</option></select></label>
+            </div>
+            <label class="create-field"><span>Опис <span style="display:inline;font-weight:500;color:#929bad">· необов’язково</span></span><input name="description" maxlength="120" placeholder="Коротко про цей набір"></label>
+            <div class="language-pair">
+              <label class="language-field"><span>Мова терміна</span><select id="source-language" aria-label="Мова терміна"></select></label>
+              <div class="language-swap" aria-hidden="true">→</div>
+              <label class="language-field"><span>Мова перекладу</span><select id="target-language" aria-label="Мова перекладу"></select></label>
+            </div>
+          </div>
+          <div class="create-panel term-editor">
+            <div class="term-editor-tools">
+              <span>Картки · додай щонайменше дві</span>
+              <button class="quiet" type="button" data-action="toggle-import">Імпортувати список ↓</button>
+            </div>
+            <div id="import-panel" class="import-panel">
+              <label for="import-text"><strong>Встав терміни й визначення</strong><span>По одному рядку на картку. Роздільник — табуляція, тире або вертикальна риска.</span></label>
+              <textarea id="import-text" placeholder="apple — яблуко&#10;to learn — вчитися"></textarea>
+              <div class="import-actions"><button class="secondary" type="button" data-action="cancel-import">Скасувати</button><button class="primary" type="button" data-action="apply-import">Додати картки</button></div>
+            </div>
+            <div class="term-editor-head"><span>№</span><span id="source-language-label">Термін</span><span>↔</span><span id="target-language-label">Переклад</span><span></span></div>
+            <div id="term-rows"></div>
+            <div class="add-card-row"><button class="secondary" type="button" data-action="add-card">＋ Додати картку</button></div>
+          </div>
+          <div class="create-bottom">
+            <span>Чернетка зберігається автоматично в цьому браузері.</span>
+            <span id="cards-count">0 карток</span>
+          </div>
+          <p class="privacy-note">Автопереклад запускається після короткої паузи. Потрібен інтернет; введений термін надсилається сервісу <a href="https://mymemory.translated.net/" target="_blank" rel="noreferrer">MyMemory</a> (до 500 байтів на запит і 5 000 символів на день у безкоштовному режимі).</p>
+        </form>
+      </div>
+    </section>
+
+    <section id="study-view" class="study-view" aria-live="polite"></section>
+  </main>
+
+  <div id="account-modal" class="account-backdrop" hidden>
+    <section class="account-modal" role="dialog" aria-modal="true" aria-labelledby="account-heading">
+      <div class="account-head">
+        <div><div class="eyebrow">Зубрій</div><h2 id="account-heading">Акаунт</h2></div>
+        <button class="icon-button" type="button" data-action="account-close" aria-label="Закрити">✕</button>
+      </div>
+      <div id="account-content"></div>
+    </section>
+  </div>
+  <div id="options-modal" class="options-backdrop" hidden>
+    <section class="options-panel" role="dialog" aria-modal="true" aria-labelledby="options-heading">
+      <div class="options-head">
+        <div><div class="eyebrow">Налаштування набору</div><h2 id="options-heading">Параметри повторення</h2></div>
+        <button class="icon-button" type="button" data-action="options-close" aria-label="Закрити">✕</button>
+      </div>
+      <div id="options-content"></div>
+    </section>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="./firebase-config.js"></script>
+  <script src="./firebase-cloud.js"></script>
+  <script>
+    (function () {
+      const starterSets = [
+        {
+          id: 'lang-travel', title: 'Англійська для подорожей', category: 'Мови', icon: '✈', sourceLanguage: 'en', targetLanguage: 'uk',
+          description: 'Фрази, які стануть у пригоді в дорозі', creator: 'Зубрій', saved: false,
+          terms: [
+            ['boarding pass', 'посадковий талон'], ['departure', 'відправлення'], ['Could I have the menu, please?', 'Чи можна меню, будь ласка?'],
+            ['to check in', 'зареєструватися на рейс або в готелі'], ['luggage', 'багаж'], ['Where is the nearest station?', 'Де найближча станція?'],
+            ['a one-way ticket', 'квиток в один бік'], ['delayed', 'затриманий'], ['to book a room', 'забронювати номер'], ['receipt', 'чек']
+          ]
+        },
+        {
+          id: 'sci-cell', title: 'Клітина та її органели', category: 'Наука', icon: '◉', sourceLanguage: 'uk', targetLanguage: 'uk',
+          description: 'Основи будови клітини', creator: 'Зубрій', saved: false,
+          terms: [
+            ['Ядро', 'Зберігає ДНК і керує основними процесами клітини.'], ['Мітохондрія', 'Органела, де клітина виробляє більшу частину енергії.'],
+            ['Рибосома', 'Структура, що синтезує білки.'], ['Клітинна мембрана', 'Вибірково пропускає речовини всередину клітини та назовні.'],
+            ['Цитоплазма', 'Внутрішнє середовище клітини, у якому розташовані органели.'], ['Хлоропласт', 'Органела рослинної клітини, де відбувається фотосинтез.'],
+            ['Вакуоля', 'Порожнина для зберігання води й розчинених речовин.'], ['ДНК', 'Молекула, що містить спадкову інформацію.']
+          ]
+        },
+        {
+          id: 'hist-ukraine', title: 'Українська революція 1917–1921', category: 'Історія', icon: '⌂', sourceLanguage: 'uk', targetLanguage: 'uk',
+          description: 'Ключові події та поняття епохи', creator: 'Зубрій', saved: false,
+          terms: [
+            ['Центральна Рада', 'Представницький орган українського національного руху, створений у березні 1917 року.'],
+            ['Універсали', 'Державні акти Центральної Ради, що проголошували основні політичні рішення.'],
+            ['УНР', 'Українська Народна Республіка, проголошена Третім Універсалом.'],
+            ['Гетьманат', 'Українська держава за правління Павла Скоропадського у 1918 році.'],
+            ['Директорія', 'Орган влади УНР, що прийшов на зміну Гетьманату наприкінці 1918 року.'],
+            ['Акт Злуки', 'Проголошення об’єднання УНР і ЗУНР 22 січня 1919 року.'],
+            ['ЗУНР', 'Західноукраїнська Народна Республіка, проголошена у листопаді 1918 року.']
+          ]
+        }
+      ];
+      const guestStorageKey = 'zubriy-study-sets-v1';
+      const accountsStorageKey = 'zubriy-accounts-v1';
+      const activeAccountStorageKey = 'zubriy-active-account-v1';
+      const draftGuestKey = 'zubriy-create-draft-v1';
+      let users = [];
+      let activeUser = null;
+      try {
+        const savedUsers = JSON.parse(localStorage.getItem(accountsStorageKey) || '[]');
+        users = Array.isArray(savedUsers) ? savedUsers : [];
+        const activeId = localStorage.getItem(activeAccountStorageKey);
+        activeUser = users.find((user) => user.id === activeId) || null;
+        if (activeUser && activeUser.cloud) activeUser = null;
+      } catch (_) {}
+      function accountDataKey(user) { return 'zubriy-account-data-v1-' + user.id; }
+      function accountDraftKey(user) { return user ? 'zubriy-create-draft-v1-' + user.id : draftGuestKey; }
+      function editDraftKey(id) { return 'zubriy-edit-draft-' + (activeUser ? activeUser.id + '-' : '') + id; }
+      function readSetsFor(user) {
+        try {
+          const stored = localStorage.getItem(user ? accountDataKey(user) : guestStorageKey);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) return parsed;
+          }
+        } catch (_) {}
+        return JSON.parse(JSON.stringify(starterSets));
+      }
+      let storageKey = activeUser ? accountDataKey(activeUser) : guestStorageKey;
+      let draftKey = accountDraftKey(activeUser);
+      let sets = readSetsFor(activeUser);
+      let activeCategory = 'Усі';
+      let activeSet = null;
+      let editingSetId = null;
+      let mode = 'overview';
+      let cardOrder = [];
+      let cardIndex = 0;
+      let flipped = false;
+      let quiz = null;
+      let matchGame = null;
+      let blocksGame = null;
+      let learnStudy = null;
+      let optionsContext = 'set';
+      let toastTimer;
+      let termCardCounter = 0;
+      let cardPlayTimer = null;
+      let stopCloudWatch = null;
+      let lastCloudErrorAt = 0;
+
+      const byId = (id) => document.getElementById(id);
+      const grid = byId('deck-grid');
+      const homeView = byId('home-view');
+      const createView = byId('create-view');
+      const studyView = byId('study-view');
+      const languageChoices = [
+        ['en', 'English'], ['uk', 'Українська'], ['pl', 'Polski'], ['de', 'Deutsch'],
+        ['fr', 'Français'], ['es', 'Español'], ['it', 'Italiano'], ['ru', 'Русский']
+      ];
+      const esc = (value) => String(value).replace(/[&<>"']/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+      function defaultStudySettings() {
+        return {cardFirstSide:'term', shuffleCards:false, autoplaySeconds:2, audio:true, starredOnly:false, studyDirection:'mixed', learnPart2Direction:'mixed', learnChunkSize:5, learnQuestionType:'choice', learnOptionCount:4, testQuestionCount:'all', testTypes:['choice','written'], testDirection:'mixed', immediateFeedback:true, blocksQuestionType:'choice', blocksHighScore:0};
+      }
+      function getStudySettings() { return Object.assign(defaultStudySettings(), activeSet && activeSet.studySettings || {}); }
+      function studyIndices() {
+        if (!activeSet) return [];
+        const all = activeSet.terms.map((_, index) => index);
+        return getStudySettings().starredOnly ? all.filter((index) => !!activeSet.terms[index][3]) : all;
+      }
+      function ensureStudyTerms(minimum) {
+        const indices = studyIndices();
+        if (indices.length < (minimum || 1)) { toast(getStudySettings().starredOnly ? 'Познач зірочкою картки для повторення або вимкни режим «Лише зі зірочкою»' : 'У наборі недостатньо карток для цього режиму'); return false; }
+        return true;
+      }
+      const iconFor = (category) => category === 'Мови' ? 'A↔Я' : category === 'Наука' ? '◉' : category === 'Історія' ? '⌂' : '✦';
+      const coverClass = (category, custom) => custom ? 'cover-custom' : category === 'Мови' ? 'cover-language' : category === 'Наука' ? 'cover-science' : category === 'Історія' ? 'cover-history' : 'cover-custom';
+      function languageName(code) { return (languageChoices.find((item) => item[0] === code) || ['', code])[1]; }
+      function initializeLanguages() {
+        const options = languageChoices.map((item) => '<option value="' + item[0] + '">' + esc(item[1]) + '</option>').join('');
+        byId('source-language').innerHTML = options;
+        byId('target-language').innerHTML = options;
+        byId('source-language').value = 'en';
+        byId('target-language').value = 'uk';
+        updateLanguageLabels();
+      }
+      function updateLanguageLabels() {
+        const sourceName = languageName(byId('source-language').value);
+        const targetName = languageName(byId('target-language').value);
+        byId('source-language-label').textContent = sourceName + ' · термін';
+        byId('target-language-label').textContent = targetName + ' · переклад';
+        document.querySelectorAll('.term-source').forEach((input, i) => { input.setAttribute('aria-label', sourceName + ' термін ' + (i + 1)); });
+        document.querySelectorAll('.term-target').forEach((input, i) => { input.setAttribute('aria-label', targetName + ' переклад ' + (i + 1)); });
+      }
+      function updateCardCount() {
+        const count = document.querySelectorAll('.term-card').length;
+        const word = count === 1 ? 'картка' : count >= 2 && count <= 4 ? 'картки' : 'карток';
+        byId('cards-count').textContent = count + ' ' + word;
+      }
+      function saveDraft() {
+        if (createView.style.display === 'none') return;
+        const currentDraftKey = editingSetId ? editDraftKey(editingSetId) : draftKey;
+        const form = byId('create-form');
+        const terms = Array.from(document.querySelectorAll('.term-card')).map((row) => ({
+          term: row.querySelector('.term-source').value,
+          definition: row.querySelector('.term-target').value,
+          auto: row.querySelector('.term-target').dataset.auto === 'true',
+          starred: row.dataset.starred === 'true'
+        }));
+        const draft = {
+          title: form.elements.title.value, description: form.elements.description.value,
+          category: form.elements.category.value, sourceLanguage: byId('source-language').value,
+          targetLanguage: byId('target-language').value, terms: terms, importText: byId('import-text').value
+        };
+        if (!draft.title && !draft.description && !draft.importText && terms.every((item) => !item.term && !item.definition)) {
+          try { localStorage.removeItem(currentDraftKey); } catch (_) {}
+          scheduleCloudSave();
+          return;
+        }
+        try { localStorage.setItem(currentDraftKey, JSON.stringify(draft)); } catch (_) {}
+        scheduleCloudSave();
+      }
+      function loadDraft(draft) {
+        const form = byId('create-form');
+        form.elements.title.value = draft.title || '';
+        form.elements.description.value = draft.description || '';
+        form.elements.category.value = draft.category || 'Мови';
+        byId('source-language').value = draft.sourceLanguage || 'en';
+        byId('target-language').value = draft.targetLanguage || 'uk';
+        byId('import-text').value = draft.importText || '';
+        if (draft.importText) byId('import-panel').classList.add('open');
+        (Array.isArray(draft.terms) ? draft.terms : []).forEach((item) => {
+          const row = addTermRow(false);
+          row.querySelector('.term-source').value = item.term || '';
+          row.querySelector('.term-target').value = item.definition || '';
+          row.querySelector('.term-target').dataset.auto = item.auto ? 'true' : 'false';
+          row.dataset.starred = item.starred ? 'true' : 'false';
+          if (item.auto) {
+            const status = row.querySelector('.translate-status');
+            status.textContent = 'Відновлений автопереклад'; status.dataset.state = 'ready';
+          }
+          if (item.term && !item.definition) queueTranslation(row, false);
+        });
+        if (!document.querySelectorAll('.term-card').length) { addTermRow(false); addTermRow(false); }
+        updateLanguageLabels(); updateCardCount();
+      }
+      function addTermRow(focus) {
+        const row = document.createElement('div');
+        const number = ++termCardCounter;
+        row.className = 'term-card';
+        row.dataset.rowId = 'term-' + number;
+        row.dataset.starred = 'false';
+        row.innerHTML = '<span class="row-number">' + (document.querySelectorAll('.term-card').length + 1) + '</span>' +
+          '<div class="word-side source-side"><div class="word-input-row"><input class="term-input term-source" autocomplete="off" placeholder="Введи термін" aria-label="Термін ' + number + '">' +
+            '<button class="speaker-button" type="button" data-action="speak" data-side="source" aria-label="Вимовити термін">◖))</button></div></div>' +
+          '<button class="translate-trigger" type="button" data-action="translate-card" aria-label="Перекласти цей термін" title="Перекласти ще раз">↔</button>' +
+          '<div class="word-side target-side"><div class="word-input-row"><input class="term-input term-target" autocomplete="off" placeholder="Переклад з’явиться автоматично" aria-label="Переклад ' + number + '">' +
+            '<button class="speaker-button" type="button" data-action="speak" data-side="target" aria-label="Вимовити переклад">◖))</button></div><div class="translate-status" aria-live="polite">Введи слово для автоперекладу</div></div>' +
+          '<button class="remove-card" type="button" data-action="remove-card" aria-label="Видалити картку">×</button>';
+        byId('term-rows').appendChild(row);
+        updateLanguageLabels(); updateCardCount();
+        if (focus) row.querySelector('.term-source').focus();
+        return row;
+      }
+      function openCreate(editId) {
+        activeSet = null;
+        editingSetId = editId || null;
+        homeView.style.display = 'none'; studyView.style.display = 'none'; createView.style.display = 'block';
+        byId('create-form').reset();
+        byId('term-rows').innerHTML = '';
+        byId('import-panel').classList.remove('open');
+        byId('import-text').value = '';
+        const editing = editingSetId ? sets.find((item) => item.id === editingSetId) : null;
+        if (editing) {
+          let editDraft = null;
+          try { editDraft = JSON.parse(localStorage.getItem(editDraftKey(editingSetId)) || 'null'); } catch (_) {}
+          if (editDraft) {
+            loadDraft(editDraft);
+            toast('Чернетку змін відновлено');
+          } else {
+            byId('create-form').elements.title.value = editing.title;
+            byId('create-form').elements.description.value = editing.description || '';
+            byId('create-form').elements.category.value = editing.category;
+            byId('source-language').value = editing.sourceLanguage || 'en';
+            byId('target-language').value = editing.targetLanguage || 'uk';
+            editing.terms.forEach((term) => {
+              const row = addTermRow(false);
+              row.querySelector('.term-source').value = term[0];
+              row.querySelector('.term-target').value = term[1];
+              row.querySelector('.term-target').dataset.auto = term[2] ? 'true' : 'false';
+              row.dataset.starred = term[3] ? 'true' : 'false';
+            });
+          }
+          byId('create-heading-title').textContent = 'Редагувати набір';
+          byId('create-save-button').textContent = 'Зберегти зміни';
+        } else {
+          byId('source-language').value = 'en'; byId('target-language').value = 'uk';
+          byId('create-heading-title').textContent = 'Створити набір';
+          byId('create-save-button').textContent = 'Створити набір';
+          let draft = null;
+          try { draft = JSON.parse(localStorage.getItem(draftKey) || 'null'); } catch (_) {}
+          if (draft) { loadDraft(draft); toast('Чернетку відновлено'); }
+          else { addTermRow(false); addTermRow(false); }
+        }
+        updateLanguageLabels(); updateCardCount();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        setTimeout(() => byId('create-form').elements.title.focus(), 40);
+      }
+      function translateText(text, from, to, signal) {
+        const params = new URLSearchParams({q: text, langpair: from + '|' + to});
+        return fetch('https://api.mymemory.translated.net/get?' + params.toString(), {signal: signal}).then((response) => {
+          if (!response.ok) throw new Error('Translation request failed');
+          return response.json();
+        }).then((result) => {
+          if (Number(result.responseStatus) !== 200 || !result.responseData || !result.responseData.translatedText) {
+            throw new Error(result.responseDetails || 'No translation returned');
+          }
+          const decoded = document.createElement('textarea');
+          decoded.innerHTML = result.responseData.translatedText;
+          return decoded.value.trim();
+        });
+      }
+      function cancelTranslation(row) {
+        clearTimeout(row.translationTimer);
+        if (row.abortController) { row.abortController.abort(); row.abortController = null; }
+        row.dataset.requestToken = String(Number(row.dataset.requestToken || 0) + 1);
+      }
+      function queueTranslation(row, force) {
+        cancelTranslation(row);
+        const source = row.querySelector('.term-source');
+        const target = row.querySelector('.term-target');
+        const status = row.querySelector('.translate-status');
+        const text = source.value.trim();
+        if (!text) {
+          if (target.dataset.auto === 'true') target.value = '';
+          target.dataset.auto = 'false';
+          status.textContent = 'Введи слово для автоперекладу'; status.dataset.state = '';
+          return;
+        }
+        if (!force && target.value.trim() && target.dataset.auto !== 'true') {
+          status.textContent = 'Власний переклад'; status.dataset.state = 'ready';
+          return;
+        }
+        status.textContent = force ? 'Запит перекладу…' : 'Перекладу після паузи в наборі…';
+        status.dataset.state = 'pending';
+        row.translationTimer = setTimeout(() => requestTranslation(row, text, force), force ? 0 : 850);
+      }
+      async function requestTranslation(row, text, force) {
+        const source = row.querySelector('.term-source');
+        const target = row.querySelector('.term-target');
+        const status = row.querySelector('.translate-status');
+        const from = byId('source-language').value;
+        const to = byId('target-language').value;
+        const token = Number(row.dataset.requestToken || 0) + 1;
+        row.dataset.requestToken = String(token);
+        if (new TextEncoder().encode(text).length > 500) {
+          status.textContent = 'Скороти термін до 500 байтів, щоб перекласти його.';
+          status.dataset.state = 'error'; return;
+        }
+        if (from === to) {
+          status.textContent = 'Обери дві різні мови.';
+          status.dataset.state = 'error'; return;
+        }
+        status.textContent = 'Перекладаємо…'; status.dataset.state = 'pending';
+        const controller = new AbortController();
+        row.abortController = controller;
+        try {
+          const translated = await translateText(text, from, to, controller.signal);
+          if (!translated) throw new Error('Empty translation');
+          if (!row.isConnected || row.dataset.requestToken !== String(token) || source.value.trim() !== text) return;
+          if (!force && target.value.trim() && target.dataset.auto !== 'true') {
+            status.textContent = 'Власний переклад'; status.dataset.state = 'ready'; return;
+          }
+          target.value = translated; target.dataset.auto = 'true';
+          status.textContent = 'Автопереклад готовий · натисни ↔, щоб оновити';
+          status.dataset.state = 'ready';
+          if (row.abortController === controller) row.abortController = null;
+          saveDraft();
+        } catch (_) {
+          if (row.isConnected && row.dataset.requestToken === String(token)) {
+            status.textContent = 'Не вдалося перекласти. Натисни ↔, щоб спробувати ще раз.';
+            status.dataset.state = 'error';
+          }
+          if (row.abortController === controller) row.abortController = null;
+        }
+      }
+      function speakTerm(row, side) {
+        const input = row.querySelector(side === 'source' ? '.term-source' : '.term-target');
+        const value = input.value.trim();
+        if (!value) { toast('Спочатку введи слово'); return; }
+        if (!('speechSynthesis' in window)) { toast('Озвучення не підтримується цим браузером'); return; }
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(value);
+        utterance.lang = byId(side === 'source' ? 'source-language' : 'target-language').value;
+        window.speechSynthesis.speak(utterance);
+      }
+      function applyImportedTerms() {
+        const lines = byId('import-text').value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        const imported = lines.map((line) => {
+          const match = line.match(/^(.*?)(?:\t|—|–|\||\s-\s)(.*)$/) || line.match(/^([^,]+),(.*)$/);
+          return match ? [match[1].trim(), match[2].trim()] : null;
+        }).filter((item) => item && item[0]);
+        if (!imported.length) { toast('Не знайшов рядків із розділеними терміном і поясненням'); return; }
+        const blankRows = Array.from(document.querySelectorAll('.term-card')).filter((row) =>
+          !row.querySelector('.term-source').value.trim() && !row.querySelector('.term-target').value.trim()
+        );
+        imported.forEach((item) => {
+          const row = blankRows.shift() || addTermRow(false);
+          const source = row.querySelector('.term-source');
+          const target = row.querySelector('.term-target');
+          source.value = item[0]; target.value = item[1]; target.dataset.auto = 'false';
+          if (item[1]) {
+            const status = row.querySelector('.translate-status');
+            status.textContent = 'Імпортовано · можна змінити'; status.dataset.state = 'ready';
+          } else {
+            queueTranslation(row, false);
+          }
+        });
+        byId('import-panel').classList.remove('open');
+        byId('import-text').value = '';
+        updateLanguageLabels(); updateCardCount(); saveDraft();
+        toast(imported.length + ' карток додано');
+      }
+      function cloudConfigured() { return !!(window.ZubriyCloud && window.ZubriyCloud.isConfigured()); }
+      function readCloudSnapshot(user, sourceSets) {
+        const prefix = user ? 'zubriy-edit-draft-' + user.id + '-' : 'zubriy-edit-draft-custom-';
+        const editDrafts = {};
+        try {
+          for (let index = 0; index < localStorage.length; index += 1) {
+            const key = localStorage.key(index);
+            if (!key || !key.startsWith(prefix)) continue;
+            const setId = user ? key.slice(prefix.length) : key.slice('zubriy-edit-draft-'.length);
+            editDrafts[setId] = localStorage.getItem(key);
+          }
+        } catch (_) {}
+        let createDraft = null;
+        try { createDraft = localStorage.getItem(accountDraftKey(user)); } catch (_) {}
+        return {sets: sourceSets || readSetsFor(user), createDraft: createDraft, editDrafts: editDrafts};
+      }
+      function cacheCloudSnapshot(user, workspace) {
+        const safeSets = Array.isArray(workspace.sets) ? workspace.sets : [];
+        try { localStorage.setItem(accountDataKey(user), JSON.stringify(safeSets)); } catch (_) {}
+        const createKey = accountDraftKey(user);
+        try {
+          if (typeof workspace.createDraft === 'string') localStorage.setItem(createKey, workspace.createDraft);
+          else localStorage.removeItem(createKey);
+          const prefix = 'zubriy-edit-draft-' + user.id + '-';
+          const oldKeys = [];
+          for (let index = 0; index < localStorage.length; index += 1) {
+            const key = localStorage.key(index);
+            if (key && key.startsWith(prefix)) oldKeys.push(key);
+          }
+          oldKeys.forEach((key) => localStorage.removeItem(key));
+          Object.keys(workspace.editDrafts || {}).forEach((setId) => {
+            localStorage.setItem(prefix + setId, workspace.editDrafts[setId]);
+          });
+        } catch (_) {}
+      }
+      function scheduleCloudSave() {
+        if (!activeUser || !activeUser.cloud || !activeUser.cloudReady || !window.ZubriyCloud) return;
+        window.ZubriyCloud.queueSave(activeUser.id, readCloudSnapshot(activeUser, sets));
+      }
+      function save() {
+        try { localStorage.setItem(storageKey, JSON.stringify(sets)); } catch (_) {}
+        scheduleCloudSave();
+      }
+      function toast(message) {
+        const el = byId('toast'); el.textContent = message; el.classList.add('show');
+        clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2300);
+      }
+      function cloudErrorMessage(error) {
+        const code = error && error.code || '';
+        if (code === 'zubriy/cloud-not-configured') return 'Хмарний акаунт ще не підключено до сайту. Налаштуй Firebase для HTTPS-версії Зубрія.';
+        if (code === 'auth/email-already-in-use') return 'Ця пошта вже має акаунт Зубрія. Увійди з його паролем.';
+        if (code === 'auth/invalid-email') return 'Перевір адресу електронної пошти.';
+        if (code === 'auth/weak-password') return 'Задай пароль щонайменше з 8 символів.';
+        if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') return 'Пошта або пароль акаунта Зубрія неправильні.';
+        if (code === 'auth/unauthorized-domain') return 'Цей домен ще не дозволений у налаштуваннях Firebase Authentication.';
+        if (code === 'auth/network-request-failed' || code === 'unavailable') return 'Немає зв’язку з хмарою. Перевір інтернет і спробуй ще раз.';
+        if (code === 'permission-denied') return 'Firebase відхилив доступ. Перевір, чи опубліковані правила з firestore.rules.';
+        if (error && /failed to fetch|load failed|importing a module/i.test(error.message || '')) return 'Не вдалося завантажити Firebase SDK. Перевір інтернет і відкрий HTTPS-версію сайту.';
+        return error && error.message ? error.message : 'Не вдалося зв’язатися з хмарою.';
+      }
+      window.addEventListener('zubriy-cloud-error', (event) => {
+        const now = Date.now();
+        if (now - lastCloudErrorAt < 8000) return;
+        lastCloudErrorAt = now;
+        toast('Не вдалося синхронізувати дані: ' + cloudErrorMessage(event.detail));
+      });
+      window.addEventListener('zubriy-cloud-saved', (event) => {
+        if (!activeUser || !activeUser.cloud || activeUser.id !== event.detail.uid) return;
+        activeUser.cloudSaved = true;
+        if (!stopCloudWatch) stopCloudWatch = window.ZubriyCloud.watchWorkspace(activeUser.id, (incoming) => applyCloudWorkspace(activeUser.id, incoming));
+      });
+      function updateAccountButton() {
+        const button = byId('account-button');
+        button.textContent = activeUser ? (activeUser.name.trim().slice(0, 1).toLocaleUpperCase('uk') || 'Я') : 'Я';
+        button.classList.toggle('signed-in', !!activeUser);
+        button.setAttribute('aria-label', activeUser ? 'Акаунт ' + activeUser.name : 'Увійти або створити акаунт');
+      }
+      function renderAccount(mode) {
+        const heading = byId('account-heading');
+        const content = byId('account-content');
+        if (mode === 'import') {
+          heading.textContent = 'Імпортувати дані';
+          content.innerHTML = '<p class="account-note">Обери зашифрований файл резервної копії з першого комп’ютера та введи пароль акаунта, яким його захищали.</p>' +
+            '<form id="backup-import-form"><label class="account-field"><span>Файл резервної копії</span><input name="backupFile" type="file" accept=".json,.zubriy,application/json" required></label>' +
+            '<label class="account-field"><span>Пароль акаунта</span><input name="password" type="password" required autocomplete="current-password"></label>' +
+            '<button class="primary account-submit" type="submit">Розшифрувати й імпортувати</button></form>' +
+            '<div class="profile-actions"><button class="secondary" type="button" data-action="account-back">Назад</button></div>';
+          byId('backup-import-form').addEventListener('submit', importAccountBackup);
+          return;
+        }
+        if (activeUser && mode === 'export') {
+          heading.textContent = 'Завантажити копію';
+          content.innerHTML = '<p class="account-note">Копія міститиме набори, налаштування, позначки та чернетки. Введи пароль акаунта, щоб перевірити його й зашифрувати файл. На іншому пристрої використай цей самий пароль для імпорту.</p>' +
+            '<form id="backup-export-form"><label class="account-field"><span>Пароль акаунта</span><input name="password" type="password" required autocomplete="current-password"></label>' +
+            '<button class="primary account-submit" type="submit">Створити зашифрований файл</button></form>' +
+            '<div class="profile-actions"><button class="secondary" type="button" data-action="account-back">Назад</button></div>';
+          byId('backup-export-form').addEventListener('submit', exportAccountBackup);
+          return;
+        }
+        if (activeUser) {
+          heading.textContent = 'Мій акаунт';
+          const cloudProfile = !!activeUser.cloud;
+          content.innerHTML = '<div class="profile-card"><div class="profile-icon">' + esc((activeUser.name || activeUser.email).slice(0, 1).toLocaleUpperCase('uk')) + '</div><div><strong>' + esc(activeUser.name) + '</strong><span>' + esc(activeUser.email) + '</span></div></div>' +
+            (cloudProfile
+              ? (activeUser.cloudSaved
+                ? '<p class="account-note"><strong>Хмарна синхронізація активна.</strong> Набори й чернетки оновлюються на цьому та інших пристроях, де ти ввійшов/увійшла в той самий акаунт Зубрія.</p>'
+                : '<p class="account-note"><strong>Перша синхронізація ще не завершилась.</strong> Дані поки збережені в кеші цього пристрою й відправляться, коли Firestore стане доступним.</p>')
+              : '<p class="account-note"><strong>Це старий локальний профіль.</strong> Він збережений лише в цьому браузері. Увійди в нього після підключення хмари, щоб перенести набори та чернетки.</p>') +
+            (cloudProfile
+              ? '<div class="profile-actions"><button class="secondary" type="button" data-action="account-export">Завантажити зашифровану копію</button></div>'
+              : '<div class="profile-actions"><button class="secondary" type="button" data-action="account-export">Завантажити копію</button><button class="secondary" type="button" data-action="account-import">Імпортувати копію</button></div>') +
+            '<div class="profile-actions"><button class="secondary" type="button" data-action="account-close">Закрити</button><button class="primary" type="button" data-action="account-logout">Вийти</button></div>';
+          return;
+        }
+        const activeMode = mode === 'login' ? 'login' : 'register';
+        heading.textContent = activeMode === 'login' ? 'Увійти' : 'Створити акаунт';
+        const tabs = '<div class="account-tabs"><button class="account-tab ' + (activeMode === 'register' ? 'active' : '') + '" type="button" data-action="account-mode" data-mode="register">Реєстрація</button><button class="account-tab ' + (activeMode === 'login' ? 'active' : '') + '" type="button" data-action="account-mode" data-mode="login">Вхід</button></div>';
+        if (activeMode === 'register') {
+          content.innerHTML = tabs + '<form id="register-form">' +
+            '<label class="account-field"><span>Ім’я</span><input name="name" required minlength="2" maxlength="48" autocomplete="name" placeholder="Як до тебе звертатися"></label>' +
+            '<label class="account-field"><span>Електронна пошта для входу</span><input name="email" type="email" required maxlength="120" autocomplete="email" placeholder="name@example.com"></label>' +
+            '<label class="account-field"><span>Пароль</span><input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="Щонайменше 8 символів"></label>' +
+            '<button class="primary account-submit" type="submit">Створити акаунт</button></form>' +
+            '<p class="account-note">' + (cloudConfigured()
+              ? 'Пошта й пароль створять окремий акаунт Зубрія. Він не залежить від Google-входу в браузері; набори зберігатимуться у хмарі.'
+              : 'Хмарне сховище ще не підключене до цього сайту. Після налаштування Firebase акаунт Зубрія працюватиме з будь-якого пристрою. <a href="./FIREBASE-SETUP.md">Інструкція з підключення</a>.') + '</p>' +
+            '<div class="profile-actions"><button class="secondary" type="button" data-action="account-import">Імпортувати копію з іншого пристрою</button></div>';
+          byId('register-form').addEventListener('submit', registerAccount);
+        } else {
+          content.innerHTML = tabs + '<form id="login-form">' +
+            '<label class="account-field"><span>Електронна пошта</span><input name="email" type="email" required maxlength="120" autocomplete="email"></label>' +
+            '<label class="account-field"><span>Пароль</span><input name="password" type="password" required maxlength="128" autocomplete="current-password"></label>' +
+            '<button class="primary account-submit" type="submit">Увійти</button></form>' +
+            '<p class="account-note">' + (cloudConfigured()
+              ? 'Увійди за поштою та паролем акаунта Зубрія. Google-акаунт у браузері не впливає на вхід; дані завантажаться з хмари.'
+              : 'Це старий локальний вхід, не через Google. Хмарний вхід запрацює після підключення Firebase; на цьому пристрої можна ввійти в уже збережений локальний профіль. <a href="./FIREBASE-SETUP.md">Інструкція з підключення</a>.') + '</p>' +
+            '<div class="profile-actions"><button class="secondary" type="button" data-action="account-import">Імпортувати копію з іншого пристрою</button></div>';
+          byId('login-form').addEventListener('submit', loginAccount);
+        }
+      }
+      function openAccount() {
+        const modal = byId('account-modal');
+        modal.hidden = false; modal.classList.add('open');
+        renderAccount(activeUser ? 'profile' : 'register');
+      }
+      function closeAccount() {
+        const modal = byId('account-modal');
+        modal.classList.remove('open'); modal.hidden = true;
+      }
+      function bytesToBase64(bytes) {
+        let binary = '';
+        bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+        return btoa(binary);
+      }
+      function base64ToBytes(value) {
+        return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+      }
+      async function derivePasswordHash(password, salt) {
+        if (!window.crypto || !crypto.subtle) throw new Error('Secure password hashing is unavailable in this browser.');
+        const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+        const bits = await crypto.subtle.deriveBits({name: 'PBKDF2', salt: salt, iterations: 150000, hash: 'SHA-256'}, key, 256);
+        return bytesToBase64(new Uint8Array(bits));
+      }
+      function secureEqualsBase64(left, right) {
+        const a = base64ToBytes(left); const b = base64ToBytes(right);
+        if (a.length !== b.length) return false;
+        let difference = 0;
+        for (let i = 0; i < a.length; i += 1) difference |= a[i] ^ b[i];
+        return difference === 0;
+      }
+      async function deriveBackupKey(password, salt, iterations) {
+        const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+        return crypto.subtle.deriveKey({name:'PBKDF2', salt:salt, iterations:iterations, hash:'SHA-256'}, material, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+      }
+      function validateBackupPayload(payload) {
+        if (!payload || payload.format !== 'zubriy-account-data' || payload.version !== 1) throw new Error('Формат резервної копії не підтримується.');
+        const user = payload.user;
+        if (!user || typeof user.id !== 'string' || !user.id || user.id.length > 180 || typeof user.name !== 'string' || user.name.length > 48 || typeof user.email !== 'string' || user.email.length > 120 || !user.email.includes('@') || typeof user.salt !== 'string' || typeof user.passwordHash !== 'string') throw new Error('У файлі немає повних даних акаунта.');
+        if (base64ToBytes(user.salt).length !== 16 || base64ToBytes(user.passwordHash).length !== 32) throw new Error('Дані входу в резервній копії пошкоджені.');
+        if (!Array.isArray(payload.sets) || payload.sets.some((set) => !set || typeof set.id !== 'string' || !set.id || typeof set.title !== 'string' || typeof set.category !== 'string' || !Array.isArray(set.terms) || set.terms.some((term) => !Array.isArray(term) || term.length < 2 || typeof term[0] !== 'string' || typeof term[1] !== 'string'))) throw new Error('У резервній копії пошкоджений список наборів.');
+        if (payload.createDraft != null && typeof payload.createDraft !== 'string') throw new Error('Чернетка у резервній копії пошкоджена.');
+        if (payload.createDraft != null) { try { JSON.parse(payload.createDraft); } catch (_) { throw new Error('Чернетка у резервній копії пошкоджена.'); } }
+        if (!payload.editDrafts || typeof payload.editDrafts !== 'object' || Array.isArray(payload.editDrafts)) throw new Error('Чернетки змін у резервній копії пошкоджені.');
+        Object.keys(payload.editDrafts).forEach((id) => {
+          if (!id || id.length > 180 || typeof payload.editDrafts[id] !== 'string') throw new Error('Чернетка змін у резервній копії пошкоджена.');
+          try { JSON.parse(payload.editDrafts[id]); } catch (_) { throw new Error('Чернетка змін у резервній копії пошкоджена.'); }
+        });
+        return payload;
+      }
+      async function exportAccountBackup(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const submit = form.querySelector('[type="submit"]');
+        const password = String(new FormData(form).get('password') || '');
+        submit.disabled = true;
+        try {
+          let backupUser = activeUser;
+          if (activeUser.cloud) {
+            await window.ZubriyCloud.reauthenticate(password);
+            const backupSalt = crypto.getRandomValues(new Uint8Array(16));
+            backupUser = {
+              id: activeUser.id, name: activeUser.name, email: activeUser.email,
+              salt: bytesToBase64(backupSalt), passwordHash: await derivePasswordHash(password, backupSalt)
+            };
+          } else {
+            const candidate = await derivePasswordHash(password, base64ToBytes(activeUser.salt));
+            if (!secureEqualsBase64(candidate, activeUser.passwordHash)) { toast('Пароль акаунта неправильний'); submit.disabled = false; return; }
+          }
+          save();
+          const editDrafts = {};
+          const prefix = 'zubriy-edit-draft-' + activeUser.id + '-';
+          for (let i = 0; i < localStorage.length; i += 1) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(prefix)) editDrafts[key.slice(prefix.length)] = localStorage.getItem(key);
+          }
+          const payload = {
+            format:'zubriy-account-data', version:1, exportedAt:new Date().toISOString(),
+            user:backupUser, sets:sets,
+            createDraft:localStorage.getItem(accountDraftKey(activeUser)), editDrafts:editDrafts
+          };
+          const salt = crypto.getRandomValues(new Uint8Array(16));
+          const iv = crypto.getRandomValues(new Uint8Array(12));
+          const iterations = 250000;
+          const key = await deriveBackupKey(password, salt, iterations);
+          const encrypted = await crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, key, new TextEncoder().encode(JSON.stringify(payload)));
+          const backup = {format:'zubriy-encrypted-backup', version:1, kdf:{name:'PBKDF2-SHA-256',iterations:iterations,salt:bytesToBase64(salt)}, cipher:{name:'AES-GCM',iv:bytesToBase64(iv),data:bytesToBase64(new Uint8Array(encrypted))}};
+          const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          const safeName = (activeUser.email.split('@')[0] || 'account').replace(/[^a-z0-9_-]+/gi, '-').slice(0,32);
+          link.href = url; link.download = 'zubriy-backup-' + safeName + '-' + new Date().toISOString().slice(0,10) + '.json';
+          document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+          form.reset(); toast('Зашифровану копію завантажено');
+        } catch (error) {
+          toast(activeUser.cloud && ['auth/invalid-credential', 'auth/wrong-password'].includes(error && error.code)
+            ? 'Пароль акаунта Зубрія неправильний'
+            : 'Не вдалося створити копію. Перевір пароль, інтернет і доступ до шифрування браузера.');
+        }
+        submit.disabled = false;
+      }
+      async function importAccountBackup(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const submit = form.querySelector('[type="submit"]');
+        const data = new FormData(form);
+        const file = data.get('backupFile');
+        const password = String(data.get('password') || '');
+        let rollback = null;
+        if (!file || !file.size) { toast('Обери файл резервної копії'); return; }
+        if (file.size > 25000000) { toast('Файл завеликий для імпорту'); return; }
+        submit.disabled = true;
+        try {
+          const envelope = JSON.parse(await file.text());
+          if (!envelope || envelope.format !== 'zubriy-encrypted-backup' || envelope.version !== 1 || !envelope.kdf || envelope.kdf.name !== 'PBKDF2-SHA-256' || !envelope.cipher || envelope.cipher.name !== 'AES-GCM') throw new Error('Це не файл резервної копії Зубрія.');
+          const iterations = Number(envelope.kdf.iterations);
+          if (!Number.isInteger(iterations) || iterations < 100000 || iterations > 1000000) throw new Error('Параметри шифрування у файлі некоректні.');
+          const salt = base64ToBytes(envelope.kdf.salt);
+          const iv = base64ToBytes(envelope.cipher.iv);
+          if (salt.length !== 16 || iv.length !== 12) throw new Error('Файл резервної копії пошкоджений.');
+          const key = await deriveBackupKey(password, salt, iterations);
+          const decrypted = await crypto.subtle.decrypt({name:'AES-GCM',iv:iv}, key, base64ToBytes(envelope.cipher.data));
+          const payload = validateBackupPayload(JSON.parse(new TextDecoder().decode(decrypted)));
+          const email = payload.user.email.trim().toLocaleLowerCase('en');
+          const existing = users.find((user) => user.email.toLocaleLowerCase('en') === email);
+          if (existing && !window.confirm('Акаунт із цією поштою вже є на цьому пристрої. Замінити його набори й чернетки даними з копії?')) { submit.disabled = false; return; }
+          const idConflict = users.some((user) => user.id === payload.user.id && user.email.toLocaleLowerCase('en') !== email);
+          const restoredUser = Object.assign({}, payload.user, {id:existing ? existing.id : idConflict ? ('user-' + Date.now().toString(36) + Math.random().toString(36).slice(2)) : payload.user.id, email:email});
+          const nextUsers = users.filter((user) => user.id !== restoredUser.id && user.email.toLocaleLowerCase('en') !== email).concat(restoredUser);
+          const accountKey = accountDataKey(restoredUser);
+          const newDraftKey = accountDraftKey(restoredUser);
+          const editPrefix = 'zubriy-edit-draft-' + restoredUser.id + '-';
+          const oldEditKeys = [];
+          for (let i = 0; i < localStorage.length; i += 1) { const keyName = localStorage.key(i); if (keyName && keyName.startsWith(editPrefix)) oldEditKeys.push(keyName); }
+          const originalValues = new Map();
+          rollback = originalValues;
+          const remember = (keyName) => { if (!originalValues.has(keyName)) originalValues.set(keyName, localStorage.getItem(keyName)); };
+          const writeLocal = (keyName, value) => { remember(keyName); localStorage.setItem(keyName, value); };
+          const removeLocal = (keyName) => { remember(keyName); localStorage.removeItem(keyName); };
+          writeLocal(accountKey, JSON.stringify(payload.sets));
+          if (payload.createDraft == null) removeLocal(newDraftKey); else writeLocal(newDraftKey, payload.createDraft);
+          oldEditKeys.forEach(removeLocal);
+          Object.keys(payload.editDrafts).forEach((id) => writeLocal(editPrefix + id, payload.editDrafts[id]));
+          writeLocal(accountsStorageKey, JSON.stringify(nextUsers));
+          writeLocal(activeAccountStorageKey, restoredUser.id);
+          rollback = null;
+          users = nextUsers;
+          activateAccount(restoredUser);
+          toast('Акаунт і дані імпортовано на цей пристрій');
+        } catch (error) {
+          if (rollback) {
+            const keys = Array.from(rollback.keys());
+            keys.forEach((keyName) => { try { localStorage.removeItem(keyName); } catch (_) {} });
+            rollback.forEach((value, keyName) => { if (value != null) { try { localStorage.setItem(keyName, value); } catch (_) {} } });
+          }
+          toast(error && error.name === 'OperationError' ? 'Не вдалося розшифрувати файл. Перевір пароль.' : (error && error.message ? error.message : 'Не вдалося імпортувати копію.'));
+          submit.disabled = false;
+        }
+      }
+      function findLegacyAccount(email) {
+        return users.find((user) => !user.cloud && user.email && user.email.toLocaleLowerCase('en') === email);
+      }
+      async function verifyLegacyPassword(user, password) {
+        if (!user || !user.salt || !user.passwordHash) return false;
+        const candidate = await derivePasswordHash(password, base64ToBytes(user.salt));
+        return secureEqualsBase64(candidate, user.passwordHash);
+      }
+      function activateAccount(user) {
+        if (stopCloudWatch) { stopCloudWatch(); stopCloudWatch = null; }
+        activeUser = user;
+        storageKey = accountDataKey(user);
+        draftKey = accountDraftKey(user);
+        sets = readSetsFor(user);
+        try { localStorage.setItem(activeAccountStorageKey, user.id); } catch (_) {}
+        updateAccountButton(); closeAccount(); showHome('Усі');
+      }
+      function applyCloudWorkspace(userId, workspace) {
+        if (!activeUser || !activeUser.cloud || activeUser.id !== userId) return;
+        activeUser.cloudReady = true;
+        activeUser.cloudSaved = true;
+        const safeWorkspace = {
+          sets: Array.isArray(workspace.sets) ? workspace.sets : [],
+          createDraft: workspace.createDraft,
+          editDrafts: workspace.editDrafts || {}
+        };
+        cacheCloudSnapshot(activeUser, safeWorkspace);
+        sets = safeWorkspace.sets;
+        if (activeSet) activeSet = sets.find((set) => set.id === activeSet.id) || null;
+        if (studyView.style.display !== 'none') {
+          if (activeSet) renderStudy();
+          else showHome(activeCategory);
+        } else renderDecks();
+      }
+      function activateCloudAccount(firebaseUser, workspace, cloudSaved) {
+        if (stopCloudWatch) { stopCloudWatch(); stopCloudWatch = null; }
+        const user = {
+          id: firebaseUser.uid || firebaseUser.id,
+          email: firebaseUser.email,
+          name: firebaseUser.name || firebaseUser.displayName || (firebaseUser.email || '').split('@')[0] || 'Учень',
+          cloud: true,
+          cloudReady: true,
+          cloudSaved: cloudSaved !== false
+        };
+        users = users.filter((item) => item.id !== user.id && !(item.cloud && item.email === user.email)).concat(user);
+        try { localStorage.setItem(accountsStorageKey, JSON.stringify(users)); } catch (_) {}
+        activeUser = user;
+        storageKey = accountDataKey(user);
+        draftKey = accountDraftKey(user);
+        cacheCloudSnapshot(user, workspace);
+        sets = Array.isArray(workspace.sets) ? workspace.sets : readSetsFor(user);
+        try { localStorage.setItem(activeAccountStorageKey, user.id); } catch (_) {}
+        if (user.cloudSaved) stopCloudWatch = window.ZubriyCloud.watchWorkspace(user.id, (incoming) => applyCloudWorkspace(user.id, incoming));
+        updateAccountButton(); closeAccount(); showHome('Усі');
+      }
+      function cloudSeedSets(legacyUser) {
+        if (legacyUser) return readSetsFor(legacyUser);
+        return activeUser ? JSON.parse(JSON.stringify(starterSets)) : readSetsFor(null);
+      }
+      async function createCloudAccountFromForm(email, password, name, legacyUser) {
+        const seedSets = cloudSeedSets(legacyUser);
+        const snapshot = legacyUser
+          ? readCloudSnapshot(legacyUser, seedSets)
+          : (!activeUser ? readCloudSnapshot(null, seedSets) : {sets: seedSets, createDraft: null, editDrafts: {}});
+        const firebaseUser = await window.ZubriyCloud.createAccount(email, password, name);
+        let uploaded = false;
+        try { await window.ZubriyCloud.saveWorkspace(firebaseUser.uid, snapshot); uploaded = true; } catch (_) {}
+        activateCloudAccount(firebaseUser, Object.assign({exists: true}, snapshot), uploaded);
+        if (!uploaded) scheduleCloudSave();
+        return uploaded;
+      }
+      async function workspaceAfterCloudLogin(firebaseUser, legacyUser, password, restoreAuthenticatedSession) {
+        let workspace = await window.ZubriyCloud.readWorkspace(firebaseUser.uid);
+        if (workspace.exists) return {workspace, migrated: false, cloudSaved: true};
+        let sourceUser = null;
+        if (legacyUser && (restoreAuthenticatedSession || await verifyLegacyPassword(legacyUser, password))) sourceUser = legacyUser;
+        const cachedUser = {id: firebaseUser.uid, email: firebaseUser.email, cloud: true};
+        const hasCachedData = !!localStorage.getItem(accountDataKey(cachedUser));
+        let snapshot;
+        if (sourceUser) snapshot = readCloudSnapshot(sourceUser, readSetsFor(sourceUser));
+        else if (hasCachedData) snapshot = readCloudSnapshot(cachedUser, readSetsFor(cachedUser));
+        else {
+          const seedSets = cloudSeedSets(null);
+          snapshot = activeUser ? {sets: seedSets, createDraft: null, editDrafts: {}} : readCloudSnapshot(null, seedSets);
+        }
+        let cloudSaved = false;
+        try { await window.ZubriyCloud.saveWorkspace(firebaseUser.uid, snapshot); cloudSaved = true; } catch (_) {}
+        return {workspace: Object.assign({exists: true}, snapshot), migrated: !!sourceUser, cloudSaved};
+      }
+      async function restoreCloudSession() {
+        if (!cloudConfigured()) return;
+        try {
+          const firebaseUser = await window.ZubriyCloud.restoreSession();
+          if (!firebaseUser) return;
+          const legacyUser = findLegacyAccount(firebaseUser.email.toLocaleLowerCase('en'));
+          const result = await workspaceAfterCloudLogin(firebaseUser, legacyUser, '', true);
+          activateCloudAccount(firebaseUser, result.workspace, result.cloudSaved);
+        } catch (error) {
+          toast('Хмарний акаунт не завантажився: ' + cloudErrorMessage(error));
+        }
+      }
+      async function registerAccount(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        const name = String(data.get('name') || '').trim();
+        const email = String(data.get('email') || '').trim().toLocaleLowerCase('en');
+        const password = String(data.get('password') || '');
+        const submit = form.querySelector('[type="submit"]');
+        submit.disabled = true;
+        try {
+          if (!cloudConfigured()) { toast(cloudErrorMessage({code: 'zubriy/cloud-not-configured'})); submit.disabled = false; return; }
+          const legacyUser = findLegacyAccount(email);
+          let migrationSource = null;
+          if (legacyUser) {
+            try { if (await verifyLegacyPassword(legacyUser, password)) migrationSource = legacyUser; } catch (_) {}
+          }
+          const uploaded = await createCloudAccountFromForm(email, password, name, migrationSource);
+          toast(uploaded ? 'Хмарний акаунт створено; дані синхронізуються' : 'Акаунт створено. Дані залишилися в кеші й спробують синхронізуватися знову.');
+        } catch (error) {
+          toast(cloudErrorMessage(error));
+          submit.disabled = false;
+        }
+      }
+      async function loginAccount(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        const email = String(data.get('email') || '').trim().toLocaleLowerCase('en');
+        const password = String(data.get('password') || '');
+        const submit = form.querySelector('[type="submit"]');
+        submit.disabled = true;
+        try {
+          if (cloudConfigured()) {
+            const legacyUser = findLegacyAccount(email);
+            let firebaseUser;
+            try {
+              firebaseUser = await window.ZubriyCloud.signIn(email, password);
+            } catch (signInError) {
+              const canMigrate = legacyUser && ['auth/invalid-credential', 'auth/user-not-found', 'auth/wrong-password'].includes(signInError.code);
+              if (!canMigrate || !await verifyLegacyPassword(legacyUser, password)) throw signInError;
+              try {
+                firebaseUser = await window.ZubriyCloud.createAccount(email, password, legacyUser.name);
+              } catch (createError) {
+                if (createError.code === 'auth/email-already-in-use') {
+                  const invalid = new Error('The email or password is incorrect.'); invalid.code = 'auth/invalid-credential'; throw invalid;
+                }
+                throw createError;
+              }
+              const migrationData = readCloudSnapshot(legacyUser, readSetsFor(legacyUser));
+              let uploaded = false;
+              try { await window.ZubriyCloud.saveWorkspace(firebaseUser.uid, migrationData); uploaded = true; } catch (_) {}
+              activateCloudAccount(firebaseUser, Object.assign({exists: true}, migrationData), uploaded);
+              if (!uploaded) scheduleCloudSave();
+              toast(uploaded ? 'Вхід виконано; локальні дані перенесено в хмару' : 'Вхід виконано. Дані збережені в кеші й повторять синхронізацію.');
+              return;
+            }
+            const result = await workspaceAfterCloudLogin(firebaseUser, legacyUser, password);
+            activateCloudAccount(firebaseUser, result.workspace, result.cloudSaved);
+            toast(result.migrated ? 'Вхід виконано; локальні дані перенесено в хмару' : 'Вхід у хмарний акаунт виконано');
+            return;
+          }
+          const user = findLegacyAccount(email);
+          if (!user) { toast('Профілю немає на цьому пристрої. Хмарний вхід запрацює після підключення Firebase.'); submit.disabled = false; return; }
+          if (!await verifyLegacyPassword(user, password)) { toast('Пароль Зубрія неправильний. Це не пароль від Google.'); submit.disabled = false; return; }
+          activateAccount(user);
+          toast('Вхід у локальний профіль виконано');
+        } catch (error) {
+          toast(cloudConfigured() ? cloudErrorMessage(error) : 'Не вдалося увійти. Перевір локальне сховище й пароль.');
+          submit.disabled = false;
+        }
+      }
+      async function logoutAccount() {
+        if (activeUser && activeUser.cloud && window.ZubriyCloud) {
+          try { await window.ZubriyCloud.flush(activeUser.id); } catch (_) {}
+          if (stopCloudWatch) { stopCloudWatch(); stopCloudWatch = null; }
+          try { await window.ZubriyCloud.signOut(); } catch (_) {}
+        }
+        activeUser = null; storageKey = guestStorageKey; draftKey = draftGuestKey;
+        try { localStorage.removeItem(activeAccountStorageKey); } catch (_) {}
+        sets = readSetsFor(null);
+        updateAccountButton(); closeAccount(); showHome('Усі'); toast('Вихід виконано');
+      }
+      function renderDecks() {
+        const query = byId('search').value.trim().toLocaleLowerCase('uk');
+        const visible = sets.filter((set) => {
+          const matchCategory = activeCategory === 'Усі' || (activeCategory === 'Мої' ? (set.custom || set.saved) : set.category === activeCategory);
+          const matchQuery = !query || (set.title + ' ' + set.category + ' ' + set.description).toLocaleLowerCase('uk').includes(query);
+          return matchCategory && matchQuery;
+        });
+        if (!visible.length) {
+          grid.innerHTML = '<div class="empty"><strong>Поки що нічого не знайдено</strong>Спробуй інший запит або створи власний набір.</div>';
+          return;
+        }
+        grid.innerHTML = visible.map((set) => {
+          const custom = !!set.custom;
+          const cover = coverClass(set.category, custom);
+          const saved = !!set.saved;
+          return '<article class="deck">' +
+            '<div class="deck-cover ' + cover + '" role="button" tabindex="0" data-open="' + esc(set.id) + '" aria-label="Відкрити ' + esc(set.title) + '">' +
+              '<span class="cover-symbol">' + esc(set.icon || iconFor(set.category)) + '</span><span class="cover-caption">' + esc(set.category.toUpperCase()) + '</span>' +
+            '</div><div class="deck-body"><div class="deck-tag">' + esc(set.category) + '</div><div class="deck-title-row"><h3>' + esc(set.title) + '</h3>' +
+              '<button class="favorite ' + (saved ? 'saved' : '') + '" data-action="favorite" data-id="' + esc(set.id) + '" aria-label="' + (saved ? 'Зняти закладку' : 'Зберегти набір') + '">' + (saved ? '★' : '☆') + '</button></div>' +
+              '<div class="deck-meta"><span>▤ ' + set.terms.length + ' карток</span><span>◷ 5 хв</span></div></div>' +
+            '<div class="deck-footer"><span class="creator">' + (custom ? 'Твій набір' : esc(set.creator || 'Зубрій')) + '</span>' +
+              '<button class="open-link" data-open="' + esc(set.id) + '">Відкрити набір →</button></div></article>';
+        }).join('');
+      }
+      function showHome(category) {
+        if (category) activeCategory = category;
+        stopCardPlay();
+        document.querySelectorAll('.term-card').forEach(cancelTranslation);
+        activeSet = null; editingSetId = null;
+        homeView.style.display = ''; studyView.style.display = 'none'; createView.style.display = 'none';
+        document.querySelectorAll('.tab').forEach((tab) => tab.classList.toggle('active', tab.dataset.category === activeCategory));
+        renderDecks(); window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+      function openDeck(id) {
+        activeSet = sets.find((set) => set.id === id);
+        if (!activeSet) return;
+        stopCardPlay();
+        homeView.style.display = 'none'; createView.style.display = 'none'; studyView.style.display = 'block';
+        mode = 'overview'; cardOrder = activeSet.terms.map((_, i) => i); cardIndex = 0; flipped = false; quiz = null; matchGame = null; blocksGame = null; learnStudy = null;
+        renderStudy(); window.scrollTo({top: 0, behavior: 'smooth'});
+      }
+      function setMode(nextMode) {
+        if (nextMode === 'quiz') { openOptions('test'); return; }
+        if (nextMode === 'options') { openOptions('set'); return; }
+        if (nextMode === 'blocks' && !ensureStudyTerms(6)) return;
+        if (['cards','learn','match'].includes(nextMode) && !ensureStudyTerms(nextMode === 'match' ? 2 : 1)) return;
+        stopCardPlay();
+        mode = nextMode; cardIndex = 0; flipped = false;
+        if (mode === 'cards') {
+          cardOrder = studyIndices();
+          if (getStudySettings().shuffleCards) cardOrder.sort(() => Math.random() - .5);
+        }
+        if (mode === 'quiz') startQuiz();
+        if (mode === 'match') startMatch();
+        if (mode === 'learn') startLearn();
+        if (mode === 'blocks') startBlocks();
+        renderStudy();
+      }
+      function startQuiz() {
+        const settings = getStudySettings();
+        const order = studyIndices().sort(() => Math.random() - .5);
+        if (settings.testQuestionCount !== 'all') order.length = Math.min(order.length, Number(settings.testQuestionCount));
+        quiz = { order: order, index: 0, correct: 0, answered: false, selected: null, currentChoices: null, settings: settings, types: settings.testTypes.length ? settings.testTypes : ['choice'] };
+      }
+      function startMatch() {
+        const indices = studyIndices().sort(() => Math.random() - .5).slice(0, Math.min(6, studyIndices().length));
+        const tiles = [];
+        indices.forEach((index) => {
+          tiles.push({kind: 'term', index: index, text: activeSet.terms[index][0]});
+          tiles.push({kind: 'definition', index: index, text: activeSet.terms[index][1]});
+        });
+        matchGame = {indices: indices, tiles: tiles.sort(() => Math.random() - .5), selected: null, matched: [], wrong: [], mistakes: 0, started: Date.now()};
+      }
+      function startLearn() {
+        const order = studyIndices().sort(() => Math.random() - .5);
+        const configuredSize = getStudySettings().learnChunkSize;
+        const chunkSize = configuredSize === 'all' ? Math.max(1, order.length) : Math.max(1, Number(configuredSize) || 5);
+        const parts = [];
+        for (let offset = 0; offset < order.length; offset += chunkSize) parts.push(order.slice(offset, offset + chunkSize));
+        learnStudy = {parts:parts, writingParts:parts.map((part) => part.slice()), part:0, writingPart:0, index:0, correct:0, partCorrect:0, writingCorrect:0, writingPartCorrect:0, answered:false, answer:'', wrongIndices:[], reviewQueue:[], reviewNextQueue:[], reviewCycle:1, phase:'parts'};
+      }
+      function makeLearnChoices(termIndex, reverse, correctAnswer) {
+        const optionCount = Math.min(4, Math.max(2, Number(getStudySettings().learnOptionCount) || 4));
+        const choices = [String(correctAnswer).split('|')[0].trim()];
+        const candidates = studyIndices().filter((index) => index !== termIndex).sort(() => Math.random() - .5);
+        candidates.forEach((index) => {
+          const candidate = String(reverse ? activeSet.terms[index][0] : activeSet.terms[index][1]).split('|')[0].trim();
+          if (candidate && !choices.some((choice) => normalizeAnswer(choice) === normalizeAnswer(candidate)) && choices.length < optionCount) choices.push(candidate);
+        });
+        return choices.sort(() => Math.random() - .5);
+      }
+      function recordLearnAnswer(answer) {
+        if (!learnStudy || learnStudy.answered || !String(answer || '').trim()) return;
+        const queue = learnStudy.phase === 'review' ? learnStudy.reviewQueue : learnStudy.phase === 'writing' ? learnStudy.writingParts[learnStudy.writingPart] : learnStudy.parts[learnStudy.part];
+        const currentTermIndex = queue[learnStudy.index];
+        const isCorrect = answerMatches(answer, learnStudy.currentAnswer);
+        learnStudy.answer = answer; learnStudy.answered = true; learnStudy.wasCorrect = isCorrect;
+        if (learnStudy.phase === 'review') {
+          if (!isCorrect) learnStudy.reviewNextQueue.push(currentTermIndex);
+        } else if (learnStudy.phase === 'writing') {
+          if (isCorrect) { learnStudy.writingCorrect += 1; learnStudy.writingPartCorrect += 1; }
+          else if (!learnStudy.wrongIndices.includes(currentTermIndex)) learnStudy.wrongIndices.push(currentTermIndex);
+        } else if (isCorrect) {
+          learnStudy.correct += 1; learnStudy.partCorrect += 1;
+        } else if (!learnStudy.wrongIndices.includes(currentTermIndex)) {
+          learnStudy.wrongIndices.push(currentTermIndex);
+        }
+      }
+      function openOptions(context) {
+        if (!activeSet) return;
+        optionsContext = context || 'set';
+        const s = getStudySettings();
+        const isTest = optionsContext === 'test';
+        const sourceName = languageName(activeSet.sourceLanguage || 'en');
+        const targetName = languageName(activeSet.targetLanguage || 'uk');
+        const forwardLabel = esc(sourceName) + ' → ' + esc(targetName);
+        const reverseLabel = esc(targetName) + ' → ' + esc(sourceName);
+        byId('options-heading').textContent = isTest ? 'Налаштування тесту' : 'Параметри повторення';
+        const settingRow = (label, help, control) => '<div class="setting-row"><div><strong>' + label + '</strong><small>' + help + '</small></div>' + control + '</div>';
+        let html = '';
+        if (isTest) {
+          html += '<div class="option-section"><h3>Питання</h3>' +
+            settingRow('Кількість питань', 'Усі або короткий раунд', '<select id="opt-test-count"><option value="all">Усі картки</option><option value="5">5 питань</option><option value="10">10 питань</option><option value="20">20 питань</option></select>') +
+            settingRow('Напрямок', 'Яку сторону картки показувати першою', '<select id="opt-test-direction"><option value="term-definition">' + forwardLabel + '</option><option value="definition-term">' + reverseLabel + '</option><option value="mixed">Випадково для кожного питання</option></select>') +
+            '<div class="setting-row"><div><strong>Тип запитань</strong><small>Можна обрати обидва типи</small></div><div class="setting-checks"><label class="setting-check"><input id="opt-type-choice" type="checkbox"> Варіанти відповіді</label><label class="setting-check"><input id="opt-type-written" type="checkbox"> Ввести відповідь</label></div></div>' +
+            '<label class="setting-check"><input id="opt-immediate" type="checkbox"> Показувати правильну відповідь після кожного питання</label></div>';
+        } else {
+          html += '<div class="option-section"><h3>Картки</h3>' +
+            settingRow('Перша сторона', 'З чого починати повторення', '<select id="opt-card-side"><option value="term">' + esc(sourceName) + '</option><option value="definition">' + esc(targetName) + '</option></select>') +
+            settingRow('Автовідтворення', 'Час до перевертання картки', '<select id="opt-autoplay"><option value="1">1 секунда</option><option value="2">2 секунди</option><option value="3">3 секунди</option><option value="5">5 секунд</option></select>') +
+            '<label class="setting-check"><input id="opt-shuffle" type="checkbox"> Перемішувати картки під час запуску</label><label class="setting-check"><input id="opt-audio" type="checkbox"> Озвучувати терміни й відповіді</label></div>' +
+            '<div class="option-section"><h3>Ігри та повторення</h3>' +
+            settingRow('Напрямок частин 1 і 3 та «Блоків»', 'Не змінює напрямок введення у частині 2', '<select id="opt-study-direction"><option value="term-definition">' + forwardLabel + '</option><option value="definition-term">' + reverseLabel + '</option><option value="mixed">Випадково для кожного питання</option></select>') +
+            settingRow('Напрямок частини 2', 'Введення відповіді в другому етапі', '<select id="opt-learn-part2-direction"><option value="term-definition">' + forwardLabel + '</option><option value="definition-term">' + reverseLabel + '</option><option value="mixed">Випадково для кожного слова</option></select>') +
+            settingRow('Формат частин 1 і 3', 'Залишає попередній формат запитань', '<select id="opt-learn-type"><option value="choice">Вибрати з варіантів</option><option value="written">Ввести відповідь</option><option value="mixed">Змішувати формати</option></select>') +
+            settingRow('Кількість варіантів', 'Для запитань із вибором відповіді', '<select id="opt-learn-options"><option value="2">2 варіанти</option><option value="3">3 варіанти</option><option value="4">4 варіанти</option></select>') +
+            settingRow('Карток у частині', 'Скільки карток проходити за один етап «Заучування»', '<select id="opt-learn-chunk"><option value="3">3 картки</option><option value="5">5 карток</option><option value="10">10 карток</option><option value="all">Усі картки в одній частині</option></select>') +
+            settingRow('Питання у «Блоках»', 'Формат запитання перед отриманням фігур', '<select id="opt-blocks-type"><option value="choice">Варіанти відповіді</option><option value="written">Ввести відповідь</option></select>') + '</div>';
+        }
+        html += '<div class="option-section"><h3>Матеріал</h3><label class="setting-check"><input id="opt-starred" type="checkbox"> Повторювати лише картки з зірочкою (' + activeSet.terms.filter((term) => !!term[3]).length + ' позначено)</label></div>' +
+          '<div class="options-actions"><button class="secondary" data-action="options-close">Скасувати</button><button class="primary" data-action="options-save">' + (isTest ? 'Почати тест' : 'Зберегти') + '</button></div>';
+        byId('options-content').innerHTML = html;
+        const modal = byId('options-modal'); modal.hidden = false; modal.classList.add('open');
+        if (isTest) {
+          byId('opt-test-count').value = s.testQuestionCount;
+          byId('opt-test-direction').value = s.testDirection;
+          byId('opt-type-choice').checked = s.testTypes.includes('choice');
+          byId('opt-type-written').checked = s.testTypes.includes('written');
+          byId('opt-immediate').checked = s.immediateFeedback;
+        } else {
+          byId('opt-card-side').value = s.cardFirstSide;
+          byId('opt-autoplay').value = String(s.autoplaySeconds);
+          byId('opt-study-direction').value = s.studyDirection;
+          byId('opt-learn-part2-direction').value = s.learnPart2Direction;
+          byId('opt-learn-type').value = s.learnQuestionType;
+          byId('opt-learn-options').value = String(s.learnOptionCount);
+          byId('opt-learn-chunk').value = String(s.learnChunkSize);
+          byId('opt-shuffle').checked = s.shuffleCards;
+          byId('opt-audio').checked = s.audio;
+          byId('opt-blocks-type').value = s.blocksQuestionType;
+        }
+        byId('opt-starred').checked = s.starredOnly;
+      }
+      function closeOptions() { const modal = byId('options-modal'); modal.classList.remove('open'); modal.hidden = true; }
+      function saveOptions() {
+        const s = getStudySettings();
+        s.starredOnly = byId('opt-starred').checked;
+        if (s.starredOnly && !activeSet.terms.some((term) => !!term[3])) { toast('Спершу познач картки зірочкою'); return; }
+        if (optionsContext === 'test') {
+          const types = [];
+          if (byId('opt-type-choice').checked) types.push('choice');
+          if (byId('opt-type-written').checked) types.push('written');
+          if (!types.length) { toast('Обери принаймні один тип запитань'); return; }
+          s.testQuestionCount = byId('opt-test-count').value;
+          s.testDirection = byId('opt-test-direction').value;
+          s.testTypes = types;
+          s.immediateFeedback = byId('opt-immediate').checked;
+        } else {
+          s.cardFirstSide = byId('opt-card-side').value;
+          s.autoplaySeconds = Number(byId('opt-autoplay').value);
+          s.studyDirection = byId('opt-study-direction').value;
+          s.learnPart2Direction = byId('opt-learn-part2-direction').value;
+          s.learnQuestionType = byId('opt-learn-type').value;
+          s.learnOptionCount = Number(byId('opt-learn-options').value);
+          s.learnChunkSize = byId('opt-learn-chunk').value === 'all' ? 'all' : Number(byId('opt-learn-chunk').value);
+          s.shuffleCards = byId('opt-shuffle').checked;
+          s.audio = byId('opt-audio').checked;
+          s.blocksQuestionType = byId('opt-blocks-type').value;
+        }
+        activeSet.studySettings = s; save(); closeOptions();
+        if (optionsContext === 'test') {
+          if (!ensureStudyTerms(1)) { renderStudy(); return; }
+          mode = 'quiz'; startQuiz(); renderStudy();
+        } else {
+          if (mode === 'cards') { cardOrder = studyIndices(); if (s.shuffleCards) cardOrder.sort(() => Math.random() - .5); cardIndex = 0; flipped = false; }
+          else if (mode === 'learn') startLearn();
+          else if (mode === 'match') { if (ensureStudyTerms(2)) startMatch(); else mode = 'overview'; }
+          else if (mode === 'blocks') { if (ensureStudyTerms(6)) startBlocks(); else mode = 'overview'; }
+          else if (mode === 'quiz') startQuiz();
+          renderStudy();
+        }
+      }
+      const blockShapes = [
+        [[0,0]], [[0,0],[0,1]], [[0,0],[1,0]], [[0,0],[0,1],[1,0],[1,1]],
+        [[0,0],[1,0],[1,1]], [[0,0],[0,1],[1,1]], [[0,0],[1,0],[2,0]], [[0,0],[0,1],[0,2]]
+      ];
+      function askBlocksQuestion() {
+        const indices = studyIndices();
+        const index = indices[Math.floor(Math.random() * indices.length)];
+        const term = activeSet.terms[index];
+        const reverse = directionIsReverse(getStudySettings().studyDirection);
+        const question = reverse ? term[1] : term[0];
+        const answer = reverse ? term[0] : term[1];
+        const choices = [String(answer).split('|')[0].trim()];
+        indices.filter((candidate) => candidate !== index).sort(() => Math.random() - .5).slice(0, 3).forEach((candidate) => choices.push(String(reverse ? activeSet.terms[candidate][0] : activeSet.terms[candidate][1]).split('|')[0].trim()));
+        blocksGame.question = {index:index, question:question, answer:answer, choices:choices.sort(() => Math.random() - .5), reverse:reverse};
+        blocksGame.answered = false; blocksGame.questionResult = '';
+      }
+      function startBlocks() {
+        blocksGame = {grid:Array(64).fill(false), score:0, errors:0, pieces:[], selectedPiece:-1, asking:true, over:false, question:null, questionNo:1, cleared:0};
+        askBlocksQuestion();
+      }
+      function blockFits(piece, row, col) {
+        return piece.shape.every(([dr,dc]) => row + dr >= 0 && row + dr < 8 && col + dc >= 0 && col + dc < 8 && !blocksGame.grid[(row+dr)*8 + col+dc]);
+      }
+      function anyBlockMove() {
+        return blocksGame.pieces.some((piece) => !piece.used && Array.from({length:8}, (_,r) => r).some((r) => Array.from({length:8}, (_,c) => c).some((c) => blockFits(piece,r,c))));
+      }
+      function checkBlocksAnswer(answer) {
+        if (!blocksGame || !blocksGame.asking || blocksGame.over) return;
+        const correct = answerMatches(answer, blocksGame.question.answer);
+        blocksGame.questionResult = correct ? 'Правильно! Три фігури вже чекають на полі.' : 'Не зовсім. Спробуй ще раз.';
+        if (!correct) { blocksGame.errors += 1; renderStudy(); return; }
+        blocksGame.pieces = Array.from({length:3}, () => ({shape:blockShapes[Math.floor(Math.random()*blockShapes.length)], used:false}));
+        blocksGame.selectedPiece = -1; blocksGame.asking = false; finishBlocksIfStuck(); renderStudy();
+      }
+      function finishBlocksIfStuck() {
+        if (!blocksGame || blocksGame.asking || blocksGame.over || anyBlockMove()) return;
+        blocksGame.over = true;
+        const settings = getStudySettings();
+        settings.blocksHighScore = Math.max(Number(settings.blocksHighScore || 0), blocksGame.score);
+        activeSet.studySettings = settings; save();
+      }
+      function placeBlock(row, col) {
+        if (!blocksGame || blocksGame.asking || blocksGame.over || blocksGame.selectedPiece < 0) return;
+        const piece = blocksGame.pieces[blocksGame.selectedPiece];
+        if (!piece || piece.used) return;
+        if (!blockFits(piece, row, col)) { toast('Ця фігура не поміщається тут'); return; }
+        piece.shape.forEach(([dr,dc]) => { blocksGame.grid[(row+dr)*8 + col+dc] = true; });
+        piece.used = true; blocksGame.score += piece.shape.length;
+        let fullRows = [];
+        let fullCols = [];
+        for (let r=0;r<8;r++) if (Array.from({length:8}, (_,c) => blocksGame.grid[r*8+c]).every(Boolean)) fullRows.push(r);
+        for (let c=0;c<8;c++) if (Array.from({length:8}, (_,r) => blocksGame.grid[r*8+c]).every(Boolean)) fullCols.push(c);
+        const clear = new Set();
+        fullRows.forEach((r) => { for(let c=0;c<8;c++) clear.add(r*8+c); });
+        fullCols.forEach((c) => { for(let r=0;r<8;r++) clear.add(r*8+c); });
+        clear.forEach((index) => { blocksGame.grid[index] = false; });
+        blocksGame.cleared += fullRows.length + fullCols.length;
+        blocksGame.score += (fullRows.length + fullCols.length) * 10;
+        if (blocksGame.pieces.every((candidate) => candidate.used)) {
+          blocksGame.asking = true; blocksGame.questionNo += 1; askBlocksQuestion();
+        } else if (!anyBlockMove()) {
+          blocksGame.over = true;
+          const settings = getStudySettings();
+          settings.blocksHighScore = Math.max(Number(settings.blocksHighScore || 0), blocksGame.score);
+          activeSet.studySettings = settings; save();
+        }
+        renderStudy();
+      }
+      function normalizeAnswer(value) {
+        return String(value || '').trim().toLocaleLowerCase().replace(/[.,!?;:()[\]{}"'’]/g, '').replace(/\s+/g, ' ');
+      }
+      function answerMatches(candidate, expected) {
+        return String(expected || '').split('|').some((answer) => normalizeAnswer(candidate) === normalizeAnswer(answer));
+      }
+      function directionIsReverse(direction) {
+        return direction === 'definition-term' || (direction === 'mixed' && Math.random() < .5);
+      }
+      function renderBlocks() {
+        if (!blocksGame) startBlocks();
+        if (blocksGame.over) return '<div class="result"><div class="result-icon">▦</div><h2>Гру завершено</h2><p>Очки: <strong>' + blocksGame.score + '</strong> · Рядків і стовпців очищено: <strong>' + blocksGame.cleared + '</strong> · Рекорд: <strong>' + getStudySettings().blocksHighScore + '</strong></p><button class="primary" data-action="blocks-restart">Зіграти ще раз</button></div>';
+        const grid = blocksGame.grid.map((filled,index) => '<button class="blocks-cell ' + (filled ? 'filled' : '') + '" aria-label="Клітинка ' + (Math.floor(index/8)+1) + ', ' + (index%8+1) + '" data-action="block-cell" data-index="' + index + '"></button>').join('');
+        const pieces = blocksGame.pieces.map((piece,index) => {
+          const occupied = new Set(piece.shape.map(([r,c]) => r*3+c));
+          const preview = Array.from({length:9}, (_,i) => '<i class="' + (occupied.has(i) ? '' : 'empty') + '"></i>').join('');
+          return '<button class="piece-button ' + (blocksGame.selectedPiece === index ? 'selected' : '') + '" data-action="block-piece" data-index="' + index + '"' + (piece.used ? ' disabled' : '') + '><span class="piece-preview">' + preview + '</span><span>' + (piece.used ? 'Розміщено' : 'Фігура ' + (index+1)) + '</span></button>';
+        }).join('');
+        let question = '';
+        if (blocksGame.asking) {
+          const q = blocksGame.question;
+          const sourceName = languageName(activeSet.sourceLanguage || 'en');
+          const targetName = languageName(activeSet.targetLanguage || 'uk');
+          const fromName = q.reverse ? targetName : sourceName;
+          const toName = q.reverse ? sourceName : targetName;
+          const written = getStudySettings().blocksQuestionType === 'written';
+          const promptLabel = (written ? 'Введи переклад з ' : 'Обери переклад з ') + fromName + ' на ' + toName;
+          const input = written
+            ? '<form id="blocks-answer-form"><input id="blocks-answer" class="term-input" autocomplete="off" placeholder="Твоя відповідь"><div class="quiz-next"><button class="primary" type="submit">Перевірити</button></div></form>'
+            : '<div class="quiz-options">' + q.choices.map((choice) => '<button class="quiz-option" data-action="blocks-answer" data-answer="' + esc(choice) + '">' + esc(choice) + '</button>').join('') + '</div>';
+          question = '<div class="block-question"><div class="card-label">Питання ' + blocksGame.questionNo + ' · дай правильну відповідь, щоб отримати фігури</div><h3>' + esc(promptLabel) + '</h3><div class="quiz-question" style="font-size:20px;margin:8px 0">' + esc(q.question) + '</div>' + input + '<div class="quiz-feedback">' + esc(blocksGame.questionResult || '') + '</div></div>';
+        }
+        return '<div class="blocks-head"><div><strong>Блоки</strong><div class="card-label">Обери фігуру, потім клітинку, куди її поставити.</div></div><div class="counter">Очки ' + blocksGame.score + ' · рекорд ' + getStudySettings().blocksHighScore + '</div></div>' + question +
+          '<div class="blocks-layout"><div class="blocks-board" aria-label="Ігрове поле 8 на 8">' + grid + '</div><div><div class="eyebrow" style="margin-bottom:9px">ТВОЇ ФІГУРИ</div><div class="piece-shelf">' + pieces + '</div><div class="side-stat" style="margin-top:14px"><span>Помилок</span><strong>' + blocksGame.errors + '</strong></div></div></div>';
+      }
+      function renderStudy() {
+        if (!activeSet) return;
+        const set = activeSet;
+        const currentModeLabel = mode === 'cards' ? 'Картки' : mode === 'learn' ? 'Заучування' : mode === 'quiz' ? 'Тест' : mode === 'match' ? 'Зіставлення' : mode === 'blocks' ? 'Блоки' : 'Огляд';
+        const actionButtons = '<div class="study-actions">' +
+          '<button class="' + (mode === 'cards' ? 'primary' : 'secondary') + '" data-action="study-mode" data-mode="cards">↻ Картки</button>' +
+          '<button class="' + (mode === 'learn' ? 'primary' : 'secondary') + '" data-action="study-mode" data-mode="learn">✦ Заучування</button>' +
+          '<button class="' + (mode === 'quiz' ? 'primary' : 'secondary') + '" data-action="study-mode" data-mode="quiz">✓ Тест</button>' +
+          '<button class="' + (mode === 'match' ? 'primary' : 'secondary') + '" data-action="study-mode" data-mode="match">⠿ Зіставлення</button>' +
+          '<button class="' + (mode === 'blocks' ? 'primary' : 'secondary') + '" data-action="study-mode" data-mode="blocks">▦ Блоки</button>' +
+          '<button class="secondary" data-action="options-open">⚙ Налаштування</button></div>';
+        const tabs = '<div class="study-tabs" role="tablist">' +
+          '<button class="study-tab ' + (mode === 'overview' ? 'active' : '') + '" data-action="study-mode" data-mode="overview">Терміни</button>' +
+          '<button class="study-tab ' + (mode === 'cards' ? 'active' : '') + '" data-action="study-mode" data-mode="cards">Картки</button>' +
+          '<button class="study-tab ' + (mode === 'learn' ? 'active' : '') + '" data-action="study-mode" data-mode="learn">Заучування</button>' +
+          '<button class="study-tab ' + (mode === 'quiz' ? 'active' : '') + '" data-action="study-mode" data-mode="quiz">Тест</button>' +
+          '<button class="study-tab ' + (mode === 'match' ? 'active' : '') + '" data-action="study-mode" data-mode="match">Зіставлення</button>' +
+          '<button class="study-tab ' + (mode === 'blocks' ? 'active' : '') + '" data-action="study-mode" data-mode="blocks">Блоки</button></div>';
+        let mainContent = '';
+        if (mode === 'overview') {
+          mainContent = '<div class="terms-title"><h2>' + set.terms.length + ' термінів у наборі</h2>' +
+            (set.custom ? '<div><button class="quiet" data-action="edit-set" data-id="' + esc(set.id) + '">Редагувати</button><button class="quiet" data-action="delete-set" data-id="' + esc(set.id) + '">Видалити</button></div>' : '') + '</div>' +
+            set.terms.map((term,index) => '<div class="term-row"><strong>' + esc(term[0]) + '</strong><span>' + esc(term[1]) + '</span><button class="favorite ' + (term[3] ? 'saved' : '') + '" data-action="star-term" data-index="' + index + '" aria-label="' + (term[3] ? 'Прибрати з позначених' : 'Позначити для повторення') + '">' + (term[3] ? '★' : '☆') + '</button></div>').join('');
+        } else if (mode === 'cards') {
+          const settings = getStudySettings();
+          const idx = cardOrder[cardIndex] ?? 0;
+          const term = set.terms[idx] || ['', ''];
+          const firstTerm = settings.cardFirstSide !== 'definition';
+          const front = firstTerm ? term[0] : term[1];
+          const back = firstTerm ? term[1] : term[0];
+          const showingFront = !flipped;
+          mainContent = '<div class="mode-top"><span>Картки · натисни, щоб перевернути</span><div class="card-mode-tools">' +
+            '<button class="quiet" data-action="shuffle-cards">Перемішати</button>' +
+            '<button class="quiet" data-action="play-cards">' + (cardPlayTimer ? 'Ⅱ Пауза' : '▶ Автовідтворення') + '</button>' +
+            '<button class="icon-button" data-action="speak-card" aria-label="Озвучити картку">◖))</button>' +
+            '<span class="counter">' + (cardIndex + 1) + ' / ' + cardOrder.length + '</span></div></div>' +
+            '<div class="progress"><i style="width:' + (((cardIndex + 1) / cardOrder.length) * 100) + '%"></i></div>' +
+            '<div class="flashcard ' + (flipped ? 'flipped' : '') + '" role="button" tabindex="0" data-action="flip"><span class="card-label">' + ((showingFront === firstTerm) ? 'Термін' : 'Переклад / пояснення') + '</span>' +
+              '<span class="card-text">' + esc(showingFront ? front : back) + '</span><span class="flip-hint">' + (flipped ? 'Натисни, щоб перевернути назад' : 'Натисни або пробіл, щоб перевернути') + '</span></div>' +
+            '<div class="card-controls"><button class="icon-button" data-action="card-prev" aria-label="Попередня картка">←</button>' +
+              '<button class="primary" data-action="flip">' + (flipped ? 'Перевернути назад' : 'Перевернути') + '</button>' +
+              '<button class="icon-button" data-action="card-next" aria-label="Наступна картка">→</button></div>';
+        } else if (mode === 'match') {
+          mainContent = renderMatch();
+        } else if (mode === 'learn') {
+          mainContent = renderLearn();
+        } else if (mode === 'blocks') {
+          mainContent = renderBlocks();
+        } else {
+          mainContent = renderQuiz();
+        }
+        studyView.innerHTML = '<button class="quiet back-button" data-action="home">← До добірок</button>' +
+          '<div class="study-heading"><div><div class="eyebrow">' + esc(set.category) + ' · ' + currentModeLabel + '</div><h1>' + esc(set.title) + '</h1><p>' + esc(set.description || 'Вчися у власному темпі.') + '</p></div>' + actionButtons + '</div>' +
+          tabs + '<div class="study-layout"><div class="study-main">' + mainContent + '</div>' +
+          '<aside class="side-card"><h3>У цьому наборі</h3><p>Коротке повторення допомагає краще закріпити знання. Почни з карток або перевір себе в тесті.</p>' +
+            '<div class="side-stat" style="margin-top:14px"><span>Карток</span><strong>' + set.terms.length + '</strong></div>' +
+            '<div class="side-stat"><span>Предмет</span><strong>' + esc(set.category) + '</strong></div>' +
+            '<button class="primary" style="width:100%;margin-top:13px" data-action="study-mode" data-mode="learn">Почати заучування →</button></aside></div>';
+      }
+      function renderMatch() {
+        if (!matchGame) startMatch();
+        if (matchGame.matched.length === matchGame.indices.length) {
+          const elapsed = Math.max(1, Math.round((Date.now() - matchGame.started) / 1000));
+          const penalized = elapsed + matchGame.mistakes;
+          return '<div class="result"><div class="result-icon">⠿</div><h2>Усі пари зібрано!</h2><p>Час: <strong>' + elapsed + ' с</strong> · Помилок: <strong>' + matchGame.mistakes + '</strong> · Час із штрафом: <strong>' + penalized + ' с</strong></p><button class="primary" data-action="match-restart">Зіграти ще раз</button></div>';
+        }
+        const tiles = matchGame.tiles.map((tile) => {
+          const tileId = tile.kind + '-' + tile.index;
+          const matched = matchGame.matched.includes(tile.index);
+          const selected = matchGame.selected && matchGame.selected.kind === tile.kind && matchGame.selected.index === tile.index;
+          const wrong = matchGame.wrong.includes(tileId);
+          return '<button class="match-tile ' + (matched ? 'matched' : '') + (selected ? ' selected' : '') + (wrong ? ' wrong' : '') + '"' +
+            ' data-action="match-tile" data-kind="' + tile.kind + '" data-index="' + tile.index + '"' + (matched ? ' disabled' : '') + '>' + esc(tile.text) + '</button>';
+        }).join('');
+        const elapsed = Math.max(0, Math.round((Date.now() - matchGame.started) / 1000));
+        return '<div class="match-instructions"><span>Знайди термін і відповідне пояснення. Помилка додає 1 секунду до результату.</span><span class="counter">' + matchGame.matched.length + ' / ' + matchGame.indices.length + ' пар · ' + (elapsed + matchGame.mistakes) + ' с</span></div><div class="match-board">' + tiles + '</div>';
+      }
+      function renderLearn() {
+        if (!learnStudy) startLearn();
+        const total = learnStudy.parts.reduce((sum, part) => sum + part.length, 0);
+        if (learnStudy.phase === 'parts' && learnStudy.index >= learnStudy.parts[learnStudy.part].length) {
+          const partSize = learnStudy.parts[learnStudy.part].length;
+          if (learnStudy.part < learnStudy.parts.length - 1) {
+            return '<div class="result"><div class="result-icon">' + (learnStudy.part + 1) + '</div><h2>Блок ' + (learnStudy.part + 1) + ' з частини 1 завершено</h2><p>Правильно з першої спроби: <strong>' + learnStudy.partCorrect + ' із ' + partSize + '</strong>.</p><button class="primary" data-action="learn-continue">Далі в частині 1 →</button></div>';
+          }
+          return '<div class="result"><div class="result-icon">1</div><h2>Частину 1 завершено</h2><p>Пройдено всі ' + total + ' карток у форматі першого етапу. Тепер введи переклади для тих самих карток.</p><button class="primary" data-action="learn-begin-writing">Почати частину 2 →</button></div>';
+        }
+        if (learnStudy.phase === 'writing' && learnStudy.index >= learnStudy.writingParts[learnStudy.writingPart].length) {
+          const partSize = learnStudy.writingParts[learnStudy.writingPart].length;
+          if (learnStudy.writingPart < learnStudy.writingParts.length - 1) {
+            return '<div class="result"><div class="result-icon">' + (learnStudy.writingPart + 1) + '</div><h2>Блок ' + (learnStudy.writingPart + 1) + ' з частини 2 завершено</h2><p>Введено правильно: <strong>' + learnStudy.writingPartCorrect + ' із ' + partSize + '</strong>.</p><button class="primary" data-action="learn-writing-continue">Далі в частині 2 →</button></div>';
+          }
+          if (learnStudy.wrongIndices.length) {
+            return '<div class="result"><div class="result-icon">2</div><h2>Частину 2 завершено</h2><p>Правильно введено: <strong>' + learnStudy.writingCorrect + ' із ' + total + '</strong>. У частині 3 повторимо ' + learnStudy.wrongIndices.length + ' карток, де були помилки.</p><button class="primary" data-action="learn-begin-review">Почати частину 3 · повторити помилки →</button></div>';
+          }
+          return '<div class="result"><div class="result-icon">✓</div><h2>Усі три частини пройдено!</h2><p>У частині 2 правильно введено <strong>' + learnStudy.writingCorrect + ' із ' + total + '</strong>. Помилок для повторення немає.</p><button class="primary" data-action="learn-restart">Повторити набір</button></div>';
+        }
+        if (learnStudy.phase === 'review' && learnStudy.index >= learnStudy.reviewQueue.length) {
+          if (learnStudy.reviewNextQueue.length) {
+            return '<div class="result"><div class="result-icon">↻</div><h2>Ще одне повторення</h2><p>Залишилося правильно відповісти на <strong>' + learnStudy.reviewNextQueue.length + '</strong> карток.</p><button class="primary" data-action="learn-review-retry">Повторити помилкові →</button></div>';
+          }
+          return '<div class="result"><div class="result-icon">✓</div><h2>Помилки виправлено!</h2><p>Усі ' + learnStudy.wrongIndices.length + ' карток із помилками пройдено правильно.</p><button class="primary" data-action="learn-restart">Повторити набір</button></div>';
+        }
+        const currentQueue = learnStudy.phase === 'review' ? learnStudy.reviewQueue : learnStudy.phase === 'writing' ? learnStudy.writingParts[learnStudy.writingPart] : learnStudy.parts[learnStudy.part];
+        const currentTermIndex = currentQueue[learnStudy.index];
+        const term = activeSet.terms[currentTermIndex];
+        const direction = learnStudy.phase === 'writing' ? getStudySettings().learnPart2Direction : getStudySettings().studyDirection;
+        if (typeof learnStudy.reverse === 'undefined') learnStudy.reverse = directionIsReverse(direction);
+        const prompt = learnStudy.reverse ? term[1] : term[0];
+        const answer = learnStudy.reverse ? term[0] : term[1];
+        learnStudy.currentAnswer = answer;
+        if (learnStudy.phase === 'writing') learnStudy.currentType = 'written';
+        else if (!learnStudy.currentType) {
+          const configuredType = getStudySettings().learnQuestionType;
+          learnStudy.currentType = configuredType === 'mixed' ? (Math.random() < .5 ? 'choice' : 'written') : configuredType;
+        }
+        if (learnStudy.currentType === 'choice' && !learnStudy.currentChoices) learnStudy.currentChoices = makeLearnChoices(currentTermIndex, learnStudy.reverse, answer);
+        const sourceName = languageName(activeSet.sourceLanguage || 'en');
+        const targetName = languageName(activeSet.targetLanguage || 'uk');
+        const fromName = learnStudy.reverse ? targetName : sourceName;
+        const toName = learnStudy.reverse ? sourceName : targetName;
+        const feedback = learnStudy.answered
+          ? (answerMatches(learnStudy.answer, answer) ? '<div class="quiz-feedback" style="color:#178263">Правильно!</div>' : '<div class="quiz-feedback" style="color:#bf5b50">Правильна відповідь: ' + esc(String(answer).split('|')[0].trim()) + '</div>')
+          : '';
+        let answerArea = '';
+        if (learnStudy.currentType === 'choice') {
+          answerArea = '<div class="quiz-options">' + learnStudy.currentChoices.map((choice) => {
+            const selected = learnStudy.answer === choice;
+            const correct = learnStudy.answered && answerMatches(choice, answer);
+            const wrong = learnStudy.answered && selected && !correct;
+            return '<button class="quiz-option ' + (correct ? 'correct' : '') + (wrong ? 'wrong' : '') + '" data-action="learn-choice" data-answer="' + esc(choice) + '"' + (learnStudy.answered ? ' disabled' : '') + '><span>' + esc(choice) + '</span><span>' + (correct ? '✓' : wrong ? '×' : '') + '</span></button>';
+          }).join('') + '</div>';
+        } else {
+          answerArea = learnStudy.answered ? '' : '<form id="learn-form"><input id="learn-answer" class="term-input" autocomplete="off" placeholder="Введи відповідь..." aria-label="Відповідь" style="margin-top:14px"><div class="quiz-next"><button class="primary" type="submit">Перевірити</button></div></form>';
+        }
+        const stageLabel = learnStudy.phase === 'review' ? 'Частина 3 з 3 · повтор помилок · цикл ' + learnStudy.reviewCycle : learnStudy.phase === 'writing' ? 'Частина 2 з 3 · блок ' + (learnStudy.writingPart + 1) + ' з ' + learnStudy.writingParts.length : 'Частина 1 з 3 · блок ' + (learnStudy.part + 1) + ' з ' + learnStudy.parts.length;
+        return '<div class="mode-top"><span>' + stageLabel + ' · ' + esc(fromName) + ' → ' + esc(toName) + '</span><span class="counter">' + (learnStudy.index + 1) + ' / ' + currentQueue.length + '</span></div>' +
+          '<div class="progress"><i style="width:' + ((learnStudy.index / currentQueue.length) * 100) + '%"></i></div>' +
+          '<div class="card-label">' + (learnStudy.currentType === 'choice' ? 'Обери правильний переклад' : 'Введи переклад') + '</div><div class="quiz-question">' + esc(prompt) + '</div>' + answerArea +
+          (learnStudy.answered ? '<div class="field-hint" style="margin:10px 0">' + feedback + '</div><div class="quiz-next"><button class="primary" data-action="learn-next">' + (learnStudy.index + 1 === currentQueue.length ? 'Завершити частину' : 'Далі →') + '</button></div>' : '');
+      }
+      function renderQuiz() {
+        if (!quiz) startQuiz();
+        if (!quiz.order.length) return '<div class="result"><div class="result-icon">✓</div><h2>Немає карток для тесту</h2><p>Познач картки зірочкою або вимкни фільтр позначених карток.</p><button class="secondary" data-action="study-mode" data-mode="overview">До термінів</button></div>';
+        if (quiz.index >= quiz.order.length) {
+          const percent = Math.round((quiz.correct / quiz.order.length) * 100);
+          const headline = percent === 100 ? 'Чудова робота!' : percent >= 60 ? 'Гарний результат!' : 'Практика веде до мети';
+          return '<div class="result"><div class="result-icon">✦</div><h2>' + headline + '</h2><p>Правильних відповідей: <strong>' + quiz.correct + ' із ' + quiz.order.length + '</strong> · ' + percent + '%</p><button class="primary" data-action="quiz-restart">Спробувати ще раз</button></div>';
+        }
+        const termIndex = quiz.order[quiz.index];
+        const term = activeSet.terms[termIndex];
+        if (!quiz.currentType) quiz.currentType = quiz.types[Math.floor(Math.random() * quiz.types.length)];
+        if (typeof quiz.currentReverse === 'undefined') quiz.currentReverse = directionIsReverse(quiz.settings.testDirection);
+        const prompt = quiz.currentReverse ? term[1] : term[0];
+        const answer = quiz.currentReverse ? term[0] : term[1];
+        if (quiz.currentType === 'choice' && !quiz.currentChoices) {
+          const choices = [String(answer).split('|')[0].trim()];
+          const other = studyIndices().filter((i) => i !== termIndex).sort(() => Math.random() - .5);
+          other.slice(0, Math.min(3, studyIndices().length - 1)).forEach((i) => choices.push(String(quiz.currentReverse ? activeSet.terms[i][0] : activeSet.terms[i][1]).split('|')[0].trim()));
+          quiz.currentChoices = choices.sort(() => Math.random() - .5);
+        }
+        quiz.currentAnswer = answer;
+        let answerArea = '';
+        if (quiz.currentType === 'choice') {
+          answerArea = '<div class="quiz-options">' + quiz.currentChoices.map((choice) => {
+            const selected = quiz.selected === choice;
+            const correct = quiz.answered && quiz.settings.immediateFeedback && answerMatches(choice, quiz.currentAnswer);
+            const wrong = quiz.answered && quiz.settings.immediateFeedback && selected && !answerMatches(choice, quiz.currentAnswer);
+            return '<button class="quiz-option ' + (correct ? 'correct' : '') + (wrong ? 'wrong' : '') + '" data-action="quiz-answer" data-answer="' + esc(choice) + '"' + (quiz.answered ? ' disabled' : '') + '><span>' + esc(choice) + '</span><span>' + (correct ? '✓' : wrong ? '×' : '') + '</span></button>';
+          }).join('') + '</div>';
+        } else {
+          answerArea = quiz.answered
+            ? '<div class="field-hint" style="margin-top:12px">' + esc(quiz.settings.immediateFeedback ? (quiz.wasCorrect ? 'Правильно!' : 'Правильна відповідь: ' + quiz.currentAnswer) : 'Відповідь записано.') + '</div>'
+            : '<form id="quiz-written-form"><input id="quiz-written-answer" class="term-input" autocomplete="off" placeholder="Введи відповідь" aria-label="Відповідь" style="margin-top:12px"><div class="quiz-next"><button class="primary" type="submit">Перевірити</button></div></form>';
+        }
+        return '<div class="mode-top"><span>Питання ' + (quiz.index + 1) + ' з ' + quiz.order.length + '</span><span class="counter">' + quiz.correct + ' правильних</span></div>' +
+          '<div class="progress"><i style="width:' + ((quiz.index / quiz.order.length) * 100) + '%"></i></div>' +
+          '<div class="card-label">' + (quiz.currentType === 'choice' ? 'Обери правильну відповідь' : 'Введи правильну відповідь') + '</div><div class="quiz-question">' + esc(prompt) + '</div>' + answerArea +
+          (quiz.answered ? '<div class="quiz-feedback">' + (quiz.settings.immediateFeedback && quiz.currentType === 'choice' ? (quiz.wasCorrect ? 'Саме так! Продовжуй.' : 'Відповідь записано.') : ' ') + '</div><div class="quiz-next"><button class="primary" data-action="quiz-next">' + (quiz.index + 1 === quiz.order.length ? 'Побачити результат' : 'Наступне питання →') + '</button></div>' : '');
+      }
+      function flipCard() { flipped = !flipped; renderStudy(); }
+      function stopCardPlay() {
+        if (cardPlayTimer) clearInterval(cardPlayTimer);
+        cardPlayTimer = null;
+      }
+      function shuffleCards() {
+        cardOrder = studyIndices().sort(() => Math.random() - .5);
+        cardIndex = 0; flipped = false; renderStudy();
+      }
+      function toggleCardPlay() {
+        if (cardPlayTimer) {
+          stopCardPlay(); renderStudy(); return;
+        }
+        cardPlayTimer = setInterval(() => {
+          if (flipped) { cardIndex = (cardIndex + 1) % cardOrder.length; flipped = false; }
+          else { flipped = true; }
+          renderStudy();
+          if (getStudySettings().audio) speakCurrentCard();
+        }, getStudySettings().autoplaySeconds * 1000);
+        renderStudy();
+      }
+      function speakCurrentCard() {
+        if (!getStudySettings().audio) { toast('Озвучення вимкнено в налаштуваннях набору'); return; }
+        if (!('speechSynthesis' in window)) { toast('Озвучення не підтримується цим браузером'); return; }
+        const idx = cardOrder[cardIndex] ?? 0;
+        const term = activeSet.terms[idx];
+        const firstTerm = getStudySettings().cardFirstSide !== 'definition';
+        const isTerm = (!flipped && firstTerm) || (flipped && !firstTerm);
+        const utterance = new SpeechSynthesisUtterance(isTerm ? term[0] : term[1]);
+        utterance.lang = isTerm ? (activeSet.sourceLanguage || 'en') : (activeSet.targetLanguage || 'uk');
+        window.speechSynthesis.cancel(); window.speechSynthesis.speak(utterance);
+      }
+      function nextCard(direction) {
+        cardIndex = (cardIndex + direction + cardOrder.length) % cardOrder.length;
+        flipped = false; renderStudy();
+      }
+      document.addEventListener('click', (event) => {
+        const categoryButton = event.target.closest('[data-category]');
+        if (categoryButton) { activeCategory = categoryButton.dataset.category; showHome(activeCategory); return; }
+        const opener = event.target.closest('[data-open]');
+        if (opener) { openDeck(opener.dataset.open); return; }
+        const button = event.target.closest('[data-action]');
+        if (!button) return;
+        const action = button.dataset.action;
+        if (action === 'account') openAccount();
+        else if (action === 'account-close') closeAccount();
+        else if (action === 'account-mode') renderAccount(button.dataset.mode);
+        else if (action === 'account-import') renderAccount('import');
+        else if (action === 'account-export') renderAccount('export');
+        else if (action === 'account-back') renderAccount(activeUser ? 'profile' : 'register');
+        else if (action === 'account-logout') logoutAccount();
+        else if (action === 'home') showHome('Усі');
+        else if (action === 'my-sets') showHome('Мої');
+        else if (action === 'create') openCreate();
+        else if (action === 'create-cancel') showHome('Усі');
+        else if (action === 'edit-set') openCreate(button.dataset.id);
+        else if (action === 'add-card') { addTermRow(true); saveDraft(); }
+        else if (action === 'remove-card') {
+          const row = button.closest('.term-card');
+          if (row) { cancelTranslation(row); row.remove(); }
+          document.querySelectorAll('.term-card .row-number').forEach((number, index) => { number.textContent = String(index + 1); });
+          updateLanguageLabels(); updateCardCount(); saveDraft();
+        } else if (action === 'translate-card') {
+          const row = button.closest('.term-card');
+          if (row) queueTranslation(row, true);
+        } else if (action === 'speak') {
+          const row = button.closest('.term-card');
+          if (row) speakTerm(row, button.dataset.side);
+        } else if (action === 'toggle-import') {
+          const panel = byId('import-panel');
+          panel.classList.toggle('open');
+          if (panel.classList.contains('open')) byId('import-text').focus();
+        } else if (action === 'cancel-import') {
+          byId('import-panel').classList.remove('open');
+        } else if (action === 'apply-import') {
+          applyImportedTerms();
+        }
+        else if (action === 'favorite') {
+          const set = sets.find((item) => item.id === button.dataset.id);
+          if (set) { set.saved = !set.saved; save(); renderDecks(); toast(set.saved ? 'Набір збережено' : 'Набір прибрано із закладок'); }
+        } else if (action === 'options-open') openOptions('set');
+        else if (action === 'options-close') closeOptions();
+        else if (action === 'options-save') saveOptions();
+        else if (action === 'star-term') {
+          const index = Number(button.dataset.index);
+          const term = activeSet && activeSet.terms[index];
+          if (term) { term[3] = !term[3]; save(); renderStudy(); }
+        } else if (action === 'study-mode') setMode(button.dataset.mode);
+        else if (action === 'flip') flipCard();
+        else if (action === 'shuffle-cards') shuffleCards();
+        else if (action === 'play-cards') toggleCardPlay();
+        else if (action === 'speak-card') speakCurrentCard();
+        else if (action === 'card-prev') nextCard(-1);
+        else if (action === 'card-next') nextCard(1);
+        else if (action === 'quiz-answer' && quiz && !quiz.answered) {
+          quiz.selected = button.dataset.answer; quiz.answered = true;
+          quiz.wasCorrect = answerMatches(quiz.selected, quiz.currentAnswer);
+          if (quiz.wasCorrect) quiz.correct += 1;
+          renderStudy();
+        } else if (action === 'quiz-next' && quiz) { quiz.index += 1; quiz.answered = false; quiz.selected = null; quiz.currentChoices = null; quiz.currentType = null; quiz.currentReverse = undefined; quiz.wasCorrect = false; renderStudy(); }
+        else if (action === 'quiz-restart') { startQuiz(); renderStudy(); }
+        else if (action === 'blocks-answer' && blocksGame) checkBlocksAnswer(button.dataset.answer);
+        else if (action === 'blocks-restart') { startBlocks(); renderStudy(); }
+        else if (action === 'block-piece' && blocksGame && !blocksGame.asking) { blocksGame.selectedPiece = Number(button.dataset.index); renderStudy(); }
+        else if (action === 'block-cell' && blocksGame && !blocksGame.asking) { const cell = Number(button.dataset.index); placeBlock(Math.floor(cell/8), cell%8); }
+        else if (action === 'learn-choice' && learnStudy) { recordLearnAnswer(button.dataset.answer); renderStudy(); }
+        else if (action === 'learn-continue' && learnStudy) { learnStudy.part += 1; learnStudy.index = 0; learnStudy.partCorrect = 0; learnStudy.answered = false; learnStudy.answer = ''; learnStudy.reverse = undefined; learnStudy.currentType = null; learnStudy.currentChoices = null; renderStudy(); }
+        else if (action === 'learn-begin-writing' && learnStudy) { learnStudy.phase = 'writing'; learnStudy.writingPart = 0; learnStudy.writingPartCorrect = 0; learnStudy.index = 0; learnStudy.answered = false; learnStudy.answer = ''; learnStudy.reverse = undefined; learnStudy.currentType = null; learnStudy.currentChoices = null; renderStudy(); }
+        else if (action === 'learn-writing-continue' && learnStudy) { learnStudy.writingPart += 1; learnStudy.index = 0; learnStudy.writingPartCorrect = 0; learnStudy.answered = false; learnStudy.answer = ''; learnStudy.reverse = undefined; learnStudy.currentType = null; learnStudy.currentChoices = null; renderStudy(); }
+        else if (action === 'learn-begin-review' && learnStudy) { learnStudy.phase = 'review'; learnStudy.reviewQueue = learnStudy.wrongIndices.slice().sort(() => Math.random() - .5); learnStudy.reviewNextQueue = []; learnStudy.reviewCycle = 1; learnStudy.index = 0; learnStudy.answered = false; learnStudy.answer = ''; learnStudy.reverse = undefined; learnStudy.currentType = null; learnStudy.currentChoices = null; renderStudy(); }
+        else if (action === 'learn-review-retry' && learnStudy) { learnStudy.reviewQueue = learnStudy.reviewNextQueue.slice().sort(() => Math.random() - .5); learnStudy.reviewNextQueue = []; learnStudy.reviewCycle += 1; learnStudy.index = 0; learnStudy.answered = false; learnStudy.answer = ''; learnStudy.reverse = undefined; learnStudy.currentType = null; learnStudy.currentChoices = null; renderStudy(); }
+        else if (action === 'learn-next' && learnStudy) { learnStudy.index += 1; learnStudy.answered = false; learnStudy.answer = ''; learnStudy.reverse = undefined; learnStudy.currentAnswer = null; learnStudy.currentType = null; learnStudy.currentChoices = null; renderStudy(); }
+        else if (action === 'learn-restart') { startLearn(); renderStudy(); }
+        else if (action === 'match-tile' && matchGame && mode === 'match') {
+          const selected = {kind: button.dataset.kind, index: Number(button.dataset.index)};
+          if (!matchGame.selected) {
+            matchGame.selected = selected;
+          } else if (matchGame.selected.kind === selected.kind) {
+            matchGame.selected = selected;
+          } else if (matchGame.selected.index === selected.index) {
+            matchGame.matched.push(selected.index); matchGame.selected = null; matchGame.wrong = [];
+          } else {
+            const game = matchGame;
+            matchGame.wrong = [matchGame.selected.kind + '-' + matchGame.selected.index, selected.kind + '-' + selected.index];
+            matchGame.mistakes += 1; matchGame.selected = null;
+            renderStudy();
+            setTimeout(() => {
+              if (matchGame === game && mode === 'match') { matchGame.wrong = []; renderStudy(); }
+            }, 500);
+            return;
+          }
+          renderStudy();
+        } else if (action === 'match-restart') { startMatch(); renderStudy(); }
+        else if (action === 'delete-set') {
+          sets = sets.filter((item) => item.id !== button.dataset.id);
+          try { localStorage.removeItem(editDraftKey(button.dataset.id)); } catch (_) {}
+          save(); showHome('Мої'); toast('Набір видалено');
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && byId('account-modal').classList.contains('open')) closeAccount();
+        if (event.key === 'Escape' && byId('options-modal').classList.contains('open')) closeOptions();
+        if (event.key === 'Escape' && createView.style.display !== 'none') showHome('Усі');
+        const openable = event.target.closest && event.target.closest('[data-open]');
+        if (openable && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); openDeck(openable.dataset.open); }
+        if (mode === 'cards' && activeSet && createView.style.display === 'none') {
+          if (event.code === 'Space' && !/INPUT|TEXTAREA|BUTTON/.test(event.target.tagName)) { event.preventDefault(); flipCard(); }
+          if (event.key === 'ArrowRight') nextCard(1);
+          if (event.key === 'ArrowLeft') nextCard(-1);
+        }
+      });
+      byId('search').addEventListener('input', renderDecks);
+      byId('source-language').addEventListener('change', () => {
+        updateLanguageLabels();
+        document.querySelectorAll('.term-card').forEach((row) => {
+          const target = row.querySelector('.term-target');
+          row.dataset.requestToken = String(Number(row.dataset.requestToken || 0) + 1);
+          const shouldTranslate = !target.value.trim() || target.dataset.auto === 'true';
+          if (target.dataset.auto === 'true') { target.value = ''; target.dataset.auto = 'false'; }
+          if (shouldTranslate) queueTranslation(row, false);
+        });
+        saveDraft();
+      });
+      byId('target-language').addEventListener('change', () => {
+        updateLanguageLabels();
+        document.querySelectorAll('.term-card').forEach((row) => {
+          const target = row.querySelector('.term-target');
+          row.dataset.requestToken = String(Number(row.dataset.requestToken || 0) + 1);
+          const shouldTranslate = !target.value.trim() || target.dataset.auto === 'true';
+          if (target.dataset.auto === 'true') { target.value = ''; target.dataset.auto = 'false'; }
+          if (shouldTranslate) queueTranslation(row, false);
+        });
+        saveDraft();
+      });
+      createView.addEventListener('input', (event) => {
+        const row = event.target.closest('.term-card');
+        if (row) {
+          if (event.target.classList.contains('term-source')) queueTranslation(row, false);
+          else if (event.target.classList.contains('term-target')) {
+            cancelTranslation(row);
+            event.target.dataset.auto = 'false';
+            const status = row.querySelector('.translate-status');
+            status.textContent = event.target.value.trim() ? 'Власний переклад' : 'Можна перекласти автоматично';
+            status.dataset.state = event.target.value.trim() ? 'ready' : '';
+          }
+        }
+        saveDraft();
+      });
+      byId('create-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const wasEditing = !!editingSetId;
+        const savedEditId = editingSetId;
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        const rows = Array.from(document.querySelectorAll('.term-card'));
+        const terms = [];
+        for (const row of rows) {
+          const source = row.querySelector('.term-source').value.trim();
+          const target = row.querySelector('.term-target').value.trim();
+          if (!source && !target) continue;
+          if (source && !target) {
+            queueTranslation(row, true);
+            toast('Зачекай на переклад або введи його вручну');
+            row.querySelector('.term-target').focus();
+            return;
+          }
+          if (!source && target) { toast('Додай термін до кожної картки'); row.querySelector('.term-source').focus(); return; }
+          terms.push([source, target, row.querySelector('.term-target').dataset.auto === 'true', row.dataset.starred === 'true']);
+        }
+        if (terms.length < 2) { toast('Додай щонайменше дві заповнені картки'); return; }
+        const category = data.get('category');
+        const newSet = {
+          id: editingSetId || 'custom-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          title: String(data.get('title')).trim(), category: category,
+          description: String(data.get('description') || '').trim() || 'Твоя особиста добірка для повторення.',
+          creator: 'Ти', custom: true, saved: false, icon: iconFor(category), terms: terms,
+          sourceLanguage: byId('source-language').value, targetLanguage: byId('target-language').value
+        };
+        const savedSetId = newSet.id;
+        if (editingSetId) {
+          const existing = sets.find((item) => item.id === editingSetId);
+          if (existing) Object.assign(existing, newSet, {saved: existing.saved, studySettings: existing.studySettings || defaultStudySettings()});
+          else sets.unshift(newSet);
+        } else {
+          sets.unshift(newSet);
+        }
+        save();
+        try { localStorage.removeItem(wasEditing ? editDraftKey(savedEditId) : draftKey); } catch (_) {}
+        scheduleCloudSave();
+        form.reset(); openDeck(savedSetId); toast(wasEditing ? 'Зміни збережено' : 'Набір створено');
+      });
+      document.addEventListener('submit', (event) => {
+        if (event.target.id === 'learn-form' && learnStudy) {
+          event.preventDefault();
+          const answer = byId('learn-answer').value.trim();
+          if (!answer) { toast('Введи відповідь'); return; }
+          recordLearnAnswer(answer); renderStudy();
+        } else if (event.target.id === 'quiz-written-form' && quiz && !quiz.answered) {
+          event.preventDefault();
+          const answer = byId('quiz-written-answer').value.trim();
+          if (!answer) { toast('Введи відповідь'); return; }
+          quiz.selected = answer; quiz.answered = true; quiz.wasCorrect = answerMatches(answer, quiz.currentAnswer);
+          if (quiz.wasCorrect) quiz.correct += 1;
+          renderStudy();
+        } else if (event.target.id === 'blocks-answer-form' && blocksGame) {
+          event.preventDefault();
+          const answer = byId('blocks-answer').value.trim();
+          if (!answer) { toast('Введи відповідь'); return; }
+          checkBlocksAnswer(answer);
+        }
+      });
+      byId('account-modal').addEventListener('click', (event) => {
+        if (event.target === byId('account-modal')) closeAccount();
+      });
+      byId('options-modal').addEventListener('click', (event) => {
+        if (event.target === byId('options-modal')) closeOptions();
+      });
+      initializeLanguages();
+      addTermRow(false); addTermRow(false);
+      updateCardCount();
+      updateAccountButton();
+      renderDecks();
+      restoreCloudSession();
+    })();
+  </script>
+</body>
+</html>
