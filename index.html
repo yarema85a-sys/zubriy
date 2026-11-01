@@ -992,7 +992,13 @@
             (cloudProfile
               ? '<div class="profile-actions"><button class="secondary" type="button" data-action="account-export">Завантажити зашифровану копію</button></div>'
               : '<div class="profile-actions"><button class="secondary" type="button" data-action="account-export">Завантажити копію</button><button class="secondary" type="button" data-action="account-import">Імпортувати копію</button></div>') +
+            (cloudProfile ? '<form id="profile-name-form" class="profile-form"><label class="account-field"><span>Ім’я</span><input name="name" required minlength="2" maxlength="48" autocomplete="name" value="' + esc(activeUser.name) + '"></label><button class="secondary account-submit" type="submit">Зберегти ім’я</button></form>' +
+              '<form id="profile-password-form" class="profile-form"><label class="account-field"><span>Поточний пароль</span><input name="currentPassword" type="password" required autocomplete="current-password"></label><label class="account-field"><span>Новий пароль</span><input name="newPassword" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="Щонайменше 8 символів"></label><button class="secondary account-submit" type="submit">Змінити пароль</button></form>' : '') +
             '<div class="profile-actions"><button class="secondary" type="button" data-action="account-close">Закрити</button><button class="primary" type="button" data-action="account-logout">Вийти</button></div>';
+          if (cloudProfile) {
+            byId('profile-name-form').addEventListener('submit', saveProfileName);
+            byId('profile-password-form').addEventListener('submit', changeProfilePassword);
+          }
           return;
         }
         const activeMode = mode === 'login' ? 'login' : 'register';
@@ -1350,6 +1356,39 @@
           toast(cloudConfigured() ? cloudErrorMessage(error) : 'Не вдалося увійти. Перевір локальне сховище й пароль.');
           submit.disabled = false;
         }
+      }
+      async function saveProfileName(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const name = String(new FormData(form).get('name') || '').trim();
+        if (name.length < 2) { toast('Ім’я має містити щонайменше 2 символи'); return; }
+        const submit = form.querySelector('[type="submit"]');
+        submit.disabled = true;
+        try {
+          const info = await window.ZubriyCloud.updateDisplayName(name);
+          activeUser = Object.assign({}, activeUser, {name: info.name});
+          users = users.map((item) => item.id === activeUser.id ? Object.assign({}, item, {name: info.name}) : item);
+          try { localStorage.setItem(accountsStorageKey, JSON.stringify(users)); } catch (_) {}
+          updateAccountButton(); renderAccount(); toast('Ім’я збережено');
+        } catch (error) {
+          toast(cloudErrorMessage(error));
+        } finally { submit.disabled = false; }
+      }
+      async function changeProfilePassword(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        const currentPassword = String(data.get('currentPassword') || '');
+        const newPassword = String(data.get('newPassword') || '');
+        if (newPassword.length < 8) { toast('Новий пароль має містити щонайменше 8 символів'); return; }
+        const submit = form.querySelector('[type="submit"]');
+        submit.disabled = true;
+        try {
+          await window.ZubriyCloud.changePassword(currentPassword, newPassword);
+          form.reset(); toast('Пароль змінено');
+        } catch (error) {
+          toast(cloudErrorMessage(error));
+        } finally { submit.disabled = false; }
       }
       async function logoutAccount() {
         if (activeUser && activeUser.cloud && window.ZubriyCloud) {

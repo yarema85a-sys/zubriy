@@ -290,6 +290,19 @@
     await apis.authApi.reauthenticateWithCredential(auth.currentUser, credential);
   }
 
+  async function updateDisplayName(name) {
+    const apis = await ready();
+    if (!auth.currentUser) throw new Error('Немає активного хмарного акаунта.');
+    await apis.authApi.updateProfile(auth.currentUser, {displayName: name});
+    return userInfo(auth.currentUser);
+  }
+
+  async function changePassword(currentPassword, newPassword) {
+    const apis = await ready();
+    await reauthenticate(currentPassword);
+    await apis.authApi.updatePassword(auth.currentUser, newPassword);
+  }
+
   window.ZubriyCloud = {
     isConfigured,
     createAccount,
@@ -302,6 +315,8 @@
     queueSave,
     flush,
     reauthenticate,
+    updateDisplayName,
+    changePassword,
     getCurrentUser: async () => { await ready(); return userInfo(auth.currentUser); }
   };
 })();
