@@ -375,6 +375,3 @@
     getCurrentUser: async () => { await ready(); return userInfo(auth.currentUser); }
   };
 })();
-eady(); return userInfo(auth.currentUser); }
-  };
-})();
