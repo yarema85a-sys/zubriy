@@ -303,6 +303,58 @@
     await apis.authApi.updatePassword(auth.currentUser, newPassword);
   }
 
+  function sharedIdFor(uid, setId) {
+    return encodeDocumentId(uid + '|' + setId);
+  }
+
+  async function publishSet(setId, meta, setData) {
+    const apis = await ready();
+    const current = auth.currentUser;
+    if (!current) throw new Error('Немає активного хмарного акаунта.');
+    await apis.firestoreApi.setDoc(apis.firestoreApi.doc(db, 'shared', sharedIdFor(current.uid, setId)), {
+      ownerUid: current.uid,
+      ownerName: String(meta.ownerName || 'Учень').slice(0, 48),
+      title: String(meta.title || '').slice(0, 120),
+      category: String(meta.category || '').slice(0, 40),
+      description: String(meta.description || '').slice(0, 300),
+      count: Number(meta.count) || 0,
+      data: JSON.stringify(setData),
+      createdAt: apis.firestoreApi.serverTimestamp()
+    });
+  }
+
+  async function unpublishSet(setId) {
+    const apis = await ready();
+    const current = auth.currentUser;
+    if (!current) throw new Error('Немає активного хмарного акаунта.');
+    await apis.firestoreApi.deleteDoc(apis.firestoreApi.doc(db, 'shared', sharedIdFor(current.uid, setId)));
+  }
+
+  async function listShared() {
+    const apis = await ready();
+    if (!auth.currentUser) throw new Error('Немає активного хмарного акаунта.');
+    const snapshot = await apis.firestoreApi.getDocs(apis.firestoreApi.collection(db, 'shared'));
+    const items = [];
+    snapshot.forEach((item) => {
+      const data = item.data();
+      let set = null;
+      try { set = JSON.parse(data.data); } catch (_) {}
+      if (!set || !Array.isArray(set.terms)) return;
+      items.push({
+        shareId: item.id,
+        ownerUid: data.ownerUid || '',
+        ownerName: data.ownerName || 'Учень',
+        title: data.title || set.title || '',
+        category: data.category || '',
+        description: data.description || '',
+        count: Number(data.count) || set.terms.length,
+        createdAt: data.createdAt && typeof data.createdAt.toMillis === 'function' ? data.createdAt.toMillis() : 0,
+        set: set
+      });
+    });
+    return items;
+  }
+
   window.ZubriyCloud = {
     isConfigured,
     createAccount,
@@ -317,6 +369,9 @@
     reauthenticate,
     updateDisplayName,
     changePassword,
+    publishSet,
+    unpublishSet,
+    listShared,
     getCurrentUser: async () => { await ready(); return userInfo(auth.currentUser); }
   };
 })();

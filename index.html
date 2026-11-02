@@ -405,6 +405,8 @@
       color-scheme: dark;
     }
     html[data-theme="dark"] body { background: var(--canvas); color: var(--ink); }
+    .sort-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: 6px 0 14px; font-size: 14px; color: var(--muted); }
+    .sort-row select { padding: 7px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font: inherit; }
   </style>
 </head>
 <body>
@@ -459,7 +461,17 @@
           <button class="tab" data-category="Наука">Наука</button>
           <button class="tab" data-category="Історія">Історія</button>
           <button class="tab" data-category="Мої">Мої набори</button>
+          <button class="tab" data-category="Спільні">Спільні набори</button>
         </div>
+        <div class="sort-row"><label for="sort-select">Сортувати:</label><select id="sort-select">
+          <option value="default">За замовчуванням</option>
+          <option value="title-asc">За назвою (А–Я)</option>
+          <option value="title-desc">За назвою (Я–А)</option>
+          <option value="cards-desc">Більше карток</option>
+          <option value="cards-asc">Менше карток</option>
+          <option value="new">Спочатку нові</option>
+          <option value="old">Спочатку старі</option>
+        </select></div>
         <div id="deck-grid" class="deck-grid"></div>
       </section>
       <footer class="bottom-note"><span><strong>Зубрій</strong> · Маленькі кроки — великі знання.</span><span>Твої набори зберігаються в цьому браузері.</span></footer>
@@ -1428,18 +1440,62 @@
         sets = readSetsFor(null);
         updateAccountButton(); closeAccount(); showHome('Усі'); toast('Вихід виконано');
       }
+      let sharedSets = null;
+      let sharedLoading = false;
+      function sortItems(items, mode) {
+        const collator = new Intl.Collator('uk');
+        const sorted = items.slice();
+        if (mode === 'title-asc') sorted.sort((a, b) => collator.compare(a.title, b.title));
+        else if (mode === 'title-desc') sorted.sort((a, b) => collator.compare(b.title, a.title));
+        else if (mode === 'cards-desc') sorted.sort((a, b) => b.count - a.count);
+        else if (mode === 'cards-asc') sorted.sort((a, b) => a.count - b.count);
+        else if (mode === 'new') sorted.sort((a, b) => b.created - a.created);
+        else if (mode === 'old') sorted.sort((a, b) => a.created - b.created);
+        return sorted;
+      }
+      async function loadSharedSets() {
+        if (sharedLoading) return;
+        sharedLoading = true;
+        try { sharedSets = await window.ZubriyCloud.listShared(); }
+        catch (error) { sharedSets = []; toast(cloudErrorMessage(error)); }
+        finally { sharedLoading = false; }
+        renderDecks();
+      }
+      function renderSharedDecks() {
+        if (sharedSets === null) {
+          grid.innerHTML = '<div class="empty"><strong>Завантажуємо спільні набори…</strong></div>';
+          loadSharedSets();
+          return;
+        }
+        const query = byId('search').value.trim().toLocaleLowerCase('uk');
+        const items = sharedSets
+          .filter((item) => !query || item.title.toLocaleLowerCase('uk').includes(query))
+          .map((item) => ({item: item, title: item.title, count: item.count, created: item.createdAt}));
+        const ordered = sortItems(items, byId('sort-select').value).map((entry) => entry.item);
+        if (!ordered.length) {
+          grid.innerHTML = '<div class="empty"><strong>Спільних наборів поки немає</strong>Щоб поділитися набором, відкрий його у вкладці «Мої набори» і натисни «Поділитися».</div>';
+          return;
+        }
+        grid.innerHTML = ordered.map((item) => '<article class="deck">' +
+          '<div class="deck-cover ' + coverClass(item.category, false) + '"><span class="cover-symbol">' + esc(iconFor(item.category)) + '</span><span class="cover-caption">' + esc(item.category.toUpperCase()) + '</span></div>' +
+          '<div class="deck-body"><div class="deck-tag">' + esc(item.category) + '</div><div class="deck-title-row"><h3>' + esc(item.title) + '</h3></div>' +
+          '<div class="deck-meta"><span>▤ ' + item.count + ' карток</span></div></div>' +
+          '<div class="deck-footer"><span class="creator">' + esc(item.ownerName) + '</span><button class="open-link" data-action="import-shared" data-id="' + esc(item.shareId) + '">Додати до моїх</button></div></article>').join('');
+      }
       function renderDecks() {
+        if (activeCategory === 'Спільні') { renderSharedDecks(); return; }
         const query = byId('search').value.trim().toLocaleLowerCase('uk');
         const visible = sets.filter((set) => {
           const matchCategory = activeCategory === 'Усі' || (activeCategory === 'Мої' ? (set.custom || set.saved) : set.category === activeCategory);
           const matchQuery = !query || (set.title + ' ' + set.category + ' ' + set.description).toLocaleLowerCase('uk').includes(query);
           return matchCategory && matchQuery;
         });
+        const ordered = sortItems(visible.map((set) => ({set: set, title: set.title, count: set.terms.length, created: 0})), byId('sort-select').value).map((entry) => entry.set);
         if (!visible.length) {
           grid.innerHTML = '<div class="empty"><strong>Поки що нічого не знайдено</strong>Спробуй інший запит або створи власний набір.</div>';
           return;
         }
-        grid.innerHTML = visible.map((set) => {
+        grid.innerHTML = ordered.map((set) => {
           const custom = !!set.custom;
           const cover = coverClass(set.category, custom);
           const saved = !!set.saved;
@@ -1450,11 +1506,45 @@
               '<button class="favorite ' + (saved ? 'saved' : '') + '" data-action="favorite" data-id="' + esc(set.id) + '" aria-label="' + (saved ? 'Зняти закладку' : 'Зберегти набір') + '">' + (saved ? '★' : '☆') + '</button></div>' +
               '<div class="deck-meta"><span>▤ ' + set.terms.length + ' карток</span><span>◷ 5 хв</span></div></div>' +
             '<div class="deck-footer"><span class="creator">' + (custom ? 'Твій набір' : esc(set.creator || 'Зубрій')) + '</span>' +
+              (custom && activeUser && activeUser.cloud ? '<button class="quiet" data-action="share-set" data-id="' + esc(set.id) + '">' + (set.shared ? 'Прибрати з доступу' : 'Поділитися') + '</button>' : '') +
               '<button class="open-link" data-open="' + esc(set.id) + '">Відкрити набір →</button></div></article>';
         }).join('');
       }
+      async function shareSet(id) {
+        const set = sets.find((item) => item.id === id);
+        if (!set || !set.custom) return;
+        if (!activeUser || !activeUser.cloud) { toast('Поділитися можна лише з хмарного акаунта'); return; }
+        try {
+          if (set.shared) {
+            await window.ZubriyCloud.unpublishSet(set.id);
+            set.shared = false;
+            toast('Набір прибрано з спільного доступу');
+          } else {
+            const setData = {
+              id: set.id, title: set.title, category: set.category, icon: set.icon || '',
+              description: set.description || '', terms: set.terms.map((term) => term.slice(0, 3))
+            };
+            await window.ZubriyCloud.publishSet(set.id, {ownerName: activeUser.name, title: set.title, category: set.category, description: set.description || '', count: set.terms.length}, setData);
+            set.shared = true;
+            toast('Набір доступний у «Спільні набори»');
+          }
+          save(); sharedSets = null; renderDecks();
+        } catch (error) { toast(cloudErrorMessage(error)); }
+      }
+      function importShared(shareId) {
+        const item = (sharedSets || []).find((entry) => entry.shareId === shareId);
+        if (!item || !item.set) return;
+        const copy = Object.assign({}, item.set, {
+          id: 'set-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+          custom: true, saved: false, shared: false, creator: item.ownerName,
+          terms: item.set.terms.map((term) => [term[0], term[1], term[2] || '', false])
+        });
+        sets = sets.concat([copy]);
+        save(); renderDecks(); toast('Набір додано до твоїх');
+      }
       function showHome(category) {
         if (category) activeCategory = category;
+        if (activeCategory === 'Спільні') sharedSets = null;
         stopCardPlay();
         document.querySelectorAll('.term-card').forEach(cancelTranslation);
         activeSet = null; editingSetId = null;
@@ -1991,6 +2081,8 @@
         } else if (action === 'apply-import') {
           applyImportedTerms();
         }
+        else if (action === 'share-set') shareSet(button.dataset.id);
+        else if (action === 'import-shared') importShared(button.dataset.id);
         else if (action === 'favorite') {
           const set = sets.find((item) => item.id === button.dataset.id);
           if (set) { set.saved = !set.saved; save(); renderDecks(); toast(set.saved ? 'Набір збережено' : 'Набір прибрано із закладок'); }
@@ -2066,6 +2158,7 @@
         }
       });
       byId('search').addEventListener('input', renderDecks);
+      byId('sort-select').addEventListener('change', renderDecks);
       byId('source-language').addEventListener('change', () => {
         updateLanguageLabels();
         document.querySelectorAll('.term-card').forEach((row) => {
