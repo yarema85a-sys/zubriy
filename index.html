@@ -391,6 +391,20 @@
       .bottom-note { display: block; line-height: 1.8; }
     }
     @media (prefers-reduced-motion: reduce) { *, *:before, *:after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+    html[data-theme="dark"] {
+      --ink: #e8ecf7;
+      --muted: #9aa4bb;
+      --line: #2a3347;
+      --paper: #1a2132;
+      --canvas: #0f1420;
+      --blue: #6f82f5;
+      --blue-dark: #8ea0ff;
+      --lavender: #252c4a;
+      --green: #35c49a;
+      --shadow: 0 16px 44px rgba(0, 0, 0, .45);
+      color-scheme: dark;
+    }
+    html[data-theme="dark"] body { background: var(--canvas); color: var(--ink); }
   </style>
 </head>
 <body>
@@ -566,6 +580,18 @@
       const accountsStorageKey = 'zubriy-accounts-v1';
       const activeAccountStorageKey = 'zubriy-active-account-v1';
       const draftGuestKey = 'zubriy-create-draft-v1';
+      const themeStorageKey = 'zubriy-theme-v1';
+      function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+      }
+      function toggleTheme() {
+        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        try { localStorage.setItem(themeStorageKey, next); } catch (_) {}
+        const button = byId('theme-toggle');
+        if (button) button.textContent = next === 'dark' ? 'Світла тема' : 'Темна тема';
+      }
+      try { applyTheme(localStorage.getItem(themeStorageKey)); } catch (_) { applyTheme('light'); }
       let users = [];
       let activeUser = null;
       try {
@@ -994,11 +1020,12 @@
               : '<div class="profile-actions"><button class="secondary" type="button" data-action="account-export">Завантажити копію</button><button class="secondary" type="button" data-action="account-import">Імпортувати копію</button></div>') +
             (cloudProfile ? '<form id="profile-name-form" class="profile-form"><label class="account-field"><span>Ім’я</span><input name="name" required minlength="2" maxlength="48" autocomplete="name" value="' + esc(activeUser.name) + '"></label><button class="secondary account-submit" type="submit">Зберегти ім’я</button></form>' +
               '<form id="profile-password-form" class="profile-form"><label class="account-field"><span>Поточний пароль</span><input name="currentPassword" type="password" required autocomplete="current-password"></label><label class="account-field"><span>Новий пароль</span><input name="newPassword" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="Щонайменше 8 символів"></label><button class="secondary account-submit" type="submit">Змінити пароль</button></form>' : '') +
-            '<div class="profile-actions"><button class="secondary" type="button" data-action="account-close">Закрити</button><button class="primary" type="button" data-action="account-logout">Вийти</button></div>';
+            '<div class="profile-actions"><button class="secondary" type="button" id="theme-toggle">' + (document.documentElement.getAttribute('data-theme') === 'dark' ? 'Світла тема' : 'Темна тема') + '</button><button class="secondary" type="button" data-action="account-close">Закрити</button><button class="primary" type="button" data-action="account-logout">Вийти</button></div>';
           if (cloudProfile) {
             byId('profile-name-form').addEventListener('submit', saveProfileName);
             byId('profile-password-form').addEventListener('submit', changeProfilePassword);
           }
+          byId('theme-toggle').addEventListener('click', toggleTheme);
           return;
         }
         const activeMode = mode === 'login' ? 'login' : 'register';
